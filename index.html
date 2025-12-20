@@ -778,7 +778,7 @@
   <div class="header">
     <div class="container">
       <div style="display: flex; align-items: center; justify-content: center; gap: 16px;">
-        <img src="https://raw.githubusercontent.com/corin1922/Service-report/refs/heads/main/app-image/JW%20Service.png" alt="JW Service" style="height: 56px; width: auto;">
+        <img src="https://raw.githubusercontent.com/corin1922/Service-report/refs/heads/main/JW%20Service.png" alt="JW Service" style="height: 56px; width: auto;">
         <h1>JW Service</h1>
       </div>
       <div id="userInfo" style="text-align: center; margin-top: 8px; font-size: 14px; opacity: 0.9;"></div>
@@ -1042,10 +1042,87 @@
 
   <script>
     // ⚠️ 여기에 Apps Script Web API URL을 입력하세요!
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwziEguZfiz-jua8GANswh_9_qDByk3rKxkRlNHylbtbI4Xy8aUB8kjPALnaG9vgzkf/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwnzG4yzd8_QcHewl6NSO50uk9BFR3V8pxwfjzzzbJZ0U9oLd69PtotrfiCCZyvKKBe/exec';
+    const AUTH_URL = 'https://script.google.com/macros/s/AKfycbwnzG4yzd8_QcHewl6NSO50uk9BFR3V8pxwfjzzzbJZ0U9oLd69PtotrfiCCZyvKKBe/exec?page=auth';
     
-    // API 호출 함수
+    // 로컬 스토리지에서 토큰 관리
+    function getToken() {
+      return localStorage.getItem('jw_service_token');
+    }
+    
+    function setToken(token) {
+      localStorage.setItem('jw_service_token', token);
+    }
+    
+    function getUserEmail() {
+      return localStorage.getItem('jw_service_email');
+    }
+    
+    function setUserEmail(email) {
+      localStorage.setItem('jw_service_email', email);
+    }
+    
+    function clearAuth() {
+      localStorage.removeItem('jw_service_token');
+      localStorage.removeItem('jw_service_email');
+    }
+    
+    // URL 파라미터에서 토큰 추출
+    function checkAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const email = urlParams.get('email');
+      
+      if (token && email) {
+        setToken(token);
+        setUserEmail(email);
+        // URL 파라미터 제거
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return true;
+      }
+      return false;
+    }
+    
+    // 로그인 필요 여부 확인
+    function checkAuth() {
+      const token = getToken();
+      const email = getUserEmail();
+      
+      if (!token || !email) {
+        showLoginScreen();
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // 로그인 화면 표시
+    function showLoginScreen() {
+      const loginHtml = `
+        <div style="text-align: center; padding: 100px 20px;">
+          <h2 style="color: var(--primary-color); margin-bottom: 20px;">🔐 로그인이 필요합니다</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 30px;">Google 계정으로 로그인하여 봉사 기록을 관리하세요.</p>
+          <button class="btn btn-primary" onclick="redirectToAuth()" style="max-width: 300px;">Google로 로그인</button>
+        </div>
+      `;
+      
+      document.querySelector('.container').innerHTML = loginHtml;
+    }
+    
+    // 인증 페이지로 리디렉트
+    function redirectToAuth() {
+      window.location.href = AUTH_URL;
+    }
+    
+    // API 호출 함수 (토큰 포함)
     async function callAPI(action, params = {}) {
+      const token = getToken();
+      
+      if (!token && action !== 'getUserInfo') {
+        redirectToAuth();
+        return { success: false, needAuth: true };
+      }
+      
       try {
         const response = await fetch(API_URL, {
           method: 'POST',
@@ -1054,11 +1131,19 @@
           },
           body: JSON.stringify({
             action: action,
+            token: token,
             ...params
           })
         });
         
         const result = await response.json();
+        
+        // 인증 만료 시 재로그인
+        if (result.needAuth) {
+          clearAuth();
+          redirectToAuth();
+        }
+        
         return result;
       } catch (error) {
         console.error('API 호출 오류:', error);
@@ -1068,6 +1153,15 @@
 
     // 초기화
     document.addEventListener('DOMContentLoaded', function() {
+      // URL 콜백 확인
+      const authSuccess = checkAuthCallback();
+      
+      // 인증 확인
+      if (!checkAuth()) {
+        return;
+      }
+      
+      // 인증 성공 시 앱 초기화
       initializeForm();
       loadUserInfo();
       loadYearlyTotal();
@@ -1076,15 +1170,19 @@
 
     // 사용자 정보 로드
     async function loadUserInfo() {
-      const result = await callAPI('getUserInfo');
+      const email = getUserEmail();
       
-      if (result.success && result.isAuthenticated) {
-        const userEmail = result.email;
-        const displayName = userEmail.split('@')[0];
+      if (email) {
+        const displayName = email.split('@')[0];
         document.getElementById('userInfo').textContent = displayName + '님';
       } else {
-        document.getElementById('userInfo').textContent = '인증 필요';
-        document.getElementById('userInfo').style.color = '#FFC107';
+        const result = await callAPI('getUserInfo');
+        
+        if (result.success && result.isAuthenticated) {
+          setUserEmail(result.email);
+          const displayName = result.email.split('@')[0];
+          document.getElementById('userInfo').textContent = displayName + '님';
+        }
       }
     }
 
