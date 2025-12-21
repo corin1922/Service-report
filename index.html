@@ -1041,6 +1041,42 @@
   </div>
 
   <script>
+ // 페이지 로드 시 저장된 사용자 확인
+  document.addEventListener('DOMContentLoaded', function() {
+    const savedEmail = localStorage.getItem('jw_service_user_email');
+    
+    if (savedEmail) {
+      // 저장된 이메일이 있으면 바로 앱 시작
+      startApp();
+    } else {
+      // 없으면 로그인 필요 확인
+      checkLoginStatus();
+    }
+  });
+
+  function checkLoginStatus() {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success && result.isAuthenticated) {
+          // 로그인 되어있으면 이메일 저장
+          localStorage.setItem('jw_service_user_email', result.email);
+          startApp();
+        } else {
+          // 로그인 안 되어있으면 Google 로그인 필요
+          // 이 경우 Apps Script가 자동으로 로그인 요구함
+        }
+      })
+      .getUserInfo();
+  }
+
+  function startApp() {
+    // 기존 앱 초기화 코드
+    initializeForm();
+    loadUserInfo();
+    loadYearlyTotal();
+    initCalendar();
+  }
+    
     // ⚠️ Apps Script Web API URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbySZUlZ23bAlrVSu2vmI1ddi19G1HnSgnknAS3fB8B_nRwbXEELo6_mPJxku44IyxRm/exec';
     const AUTH_URL = 'https://script.google.com/macros/s/AKfycbySZUlZ23bAlrVSu2vmI1ddi19G1HnSgnknAS3fB8B_nRwbXEELo6_mPJxku44IyxRm/exec?page=auth';
@@ -1161,11 +1197,6 @@
         return;
       }
       
-      // 인증 성공 시 앱 초기화
-      initializeForm();
-      loadUserInfo();
-      loadYearlyTotal();
-      initCalendar();
     });
 
     // 사용자 정보 로드
