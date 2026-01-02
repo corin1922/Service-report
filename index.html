@@ -332,43 +332,6 @@
       color: var(--text-secondary);
     }
 
-    /* 월별 선택 헤더 */
-    .month-selector {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 0 8px;
-    }
-
-    .month-select {
-      padding: 12px 20px;
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 8px;
-      font-size: 28px;
-      font-weight: 600;
-      color: white;
-      background: rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .month-select:focus {
-      outline: none;
-      border-color: white;
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .month-select:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .month-select option {
-      color: var(--text-primary);
-      background: white;
-    }
-
     /* 달력 스타일 */
     .calendar-container {
       margin-bottom: 24px;
@@ -837,6 +800,95 @@
       <!-- 홈 섹션 -->
       <section id="home" class="section active">
         <div class="card">
+          <h2 class="card-title">오늘의 봉사 기록</h2>
+          
+          <div id="homeMessage" class="message"></div>
+
+          <div class="form-group">
+            <label class="form-label">날짜</label>
+            <input type="date" id="recordDate" class="form-input" style="max-width: 400px;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">봉사 시간</label>
+            <select id="serviceHours" class="form-select">
+              <option value="">선택하세요</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">성서 연구</label>
+            <select id="bibleStudies" class="form-select">
+              <option value="">선택하세요</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveRecord()">봉사 기록 저장</button>
+        </div>
+
+        <!-- 이번 달 합계 -->
+        <div class="card" style="padding: 32px 24px; background: linear-gradient(135deg, #9B7FBF 0%, #7E5EA5 100%); color: white;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 32px; font-weight: 600; margin-bottom: 16px; opacity: 0.95;" id="currentMonthLabel">12월</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+              <div>
+                <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">시간</div>
+                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthHours">0</div>
+              </div>
+              <div>
+                <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">성서 연구</div>
+                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthStudies">0</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 언어 선택 -->
+          <div style="margin-bottom: 20px; text-align: center;">
+            <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px; font-size: 28px; cursor: pointer;">
+              <input type="radio" name="reportLang" value="ko" checked style="width: 32px; height: 32px; cursor: pointer;">
+              <span>한국어</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px; font-size: 28px; cursor: pointer;">
+              <input type="radio" name="reportLang" value="en" style="width: 32px; height: 32px; cursor: pointer;">
+              <span>English</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 28px; cursor: pointer;">
+              <input type="radio" name="reportLang" value="id" style="width: 32px; height: 32px; cursor: pointer;">
+              <span>Indonesia</span>
+            </label>
+          </div>
+
+          <!-- 전송 버튼 -->
+          <button class="btn" style="background: white; color: var(--primary-color); font-weight: 700;" onclick="copyMonthlyReport()">전송</button>
+          <div id="copyMessage" style="margin-top: 12px; text-align: center; font-size: 24px; min-height: 32px;"></div>
+        </div>
+
+        <!-- 봉사 연도 합계 -->
+        <div class="stats-card">
+          <div class="stats-year" id="serviceYear">2025 봉사 연도</div>
+          <div class="stats-hours" id="yearlyHours">0</div>
+          <div class="stats-label">시간</div>
+        </div>
+      </section>
+
+      <!-- 캘린더 섹션 -->
+      <section id="calendar" class="section">
+        <div class="card">
+          <h2 class="card-title">달력</h2>
+          
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <select id="calendarYear" class="calendar-select" onchange="onCalendarDateChange()"></select>
+              <select id="calendarMonth" class="calendar-select" onchange="onCalendarDateChange()"></select>
+            </div>
+            
+            <div class="calendar-grid" id="calendarGrid">
+              <!-- 달력이 여기에 생성됩니다 -->
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
           <h2 class="card-title">월별 기록 조회</h2>
           
           <div class="form-group">
@@ -1024,6 +1076,7 @@
       if (token && email) {
         setToken(token);
         setUserEmail(email);
+        // URL 파라미터 제거
         window.history.replaceState({}, document.title, window.location.pathname);
         return true;
       }
@@ -1099,17 +1152,19 @@
 
     // 초기화
     document.addEventListener('DOMContentLoaded', function() {
+      // URL 콜백 확인 (auth에서 돌아온 경우)
       const authSuccess = checkAuthCallback();
       
+      // 인증 확인
       if (!checkAuth()) {
-        return;
+        return; // 로그인 화면 표시됨
       }
       
+      // 인증된 경우 앱 초기화
       initializeForm();
       loadUserInfo();
       loadYearlyTotal();
       initCalendar();
-      initReportSelectors();
     });
 
     // 사용자 정보 로드
@@ -1119,60 +1174,6 @@
       if (email) {
         const displayName = email.split('@')[0];
         document.getElementById('userInfo').textContent = displayName + '님';
-      }
-    }
-    
-    // 보고서 년도/월 선택기 초기화
-    function initReportSelectors() {
-      const yearSelect = document.getElementById('reportYear');
-      const monthSelect = document.getElementById('reportMonth');
-      
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
-      
-      // 년도 선택 (현재 년도 기준 ±5년)
-      yearSelect.innerHTML = '';
-      for (let i = currentYear - 5; i <= currentYear + 5; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = i + '년';
-        if (i === currentYear) option.selected = true;
-        yearSelect.appendChild(option);
-      }
-      
-      // 월 선택 (1-12월)
-      monthSelect.innerHTML = '';
-      for (let i = 1; i <= 12; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = i + '월';
-        if (i === currentMonth) option.selected = true;
-        monthSelect.appendChild(option);
-      }
-    }
-    
-    // 선택한 년도/월의 보고서 로드
-    async function loadSelectedMonthReport() {
-      const year = parseInt(document.getElementById('reportYear').value);
-      const month = parseInt(document.getElementById('reportMonth').value);
-      
-      const result = await callAPI('getMonthlySummary', {
-        year: year,
-        month: month
-      });
-      
-      if (result.success) {
-        document.getElementById('thisMonthHours').textContent = result.totalHours || 0;
-        document.getElementById('thisMonthStudies').textContent = result.totalBibleStudies || 0;
-        
-        // 전역 변수에 저장하여 복사 기능에서 사용
-        window.currentMonthData = {
-          year: year,
-          month: month,
-          hours: result.totalHours || 0,
-          studies: result.totalBibleStudies || 0
-        };
       }
     }
     
@@ -1354,7 +1355,6 @@
         closeDayDetail();
         loadCalendarData();
         loadYearlyTotal();
-        loadSelectedMonthReport();
       } else {
         alert(result.message);
       }
@@ -1401,6 +1401,7 @@
         monthSelect.appendChild(option);
       }
 
+      // 모달 셀렉트 박스 초기화
       const editHoursSelect = document.getElementById('editServiceHours');
       for (let i = 1; i <= 24; i++) {
         const option = document.createElement('option');
@@ -1436,8 +1437,6 @@
         initCalendar();
       } else if (sectionName === 'visits') {
         loadVisitList();
-      } else if (sectionName === 'home') {
-        loadSelectedMonthReport();
       }
     }
 
@@ -1473,7 +1472,6 @@
         document.getElementById('serviceHours').value = '';
         document.getElementById('bibleStudies').value = '';
         loadYearlyTotal();
-        loadSelectedMonthReport();
       } else {
         showMessage('homeMessage', result.message, 'error');
       }
@@ -1486,9 +1484,17 @@
       if (result.success) {
         document.getElementById('serviceYear').textContent = result.year + ' 봉사 연도';
         document.getElementById('yearlyHours').textContent = result.totalHours;
+        document.getElementById('thisMonthHours').textContent = result.thisMonthHours;
+        document.getElementById('thisMonthStudies').textContent = result.thisMonthStudies;
+        document.getElementById('currentMonthLabel').textContent = result.currentMonth + '월';
         
-        // 현재 월 데이터도 로드
-        await loadSelectedMonthReport();
+        const now = new Date();
+        window.currentMonthData = {
+          year: now.getFullYear(),
+          month: now.getMonth() + 1,
+          hours: result.thisMonthHours,
+          studies: result.thisMonthStudies
+        };
       }
     }
 
@@ -1600,98 +1606,192 @@ Keterangan: -`;
               <div class="record-details">
                 <div class="record-detail">⏱️ ${record.hours}시간</div>
                 <div class="record-detail">📖 ${record.bibleStudies}명</div>
-              </div>2 class="card-title">오늘의 봉사 기록</h2>
-          
-          <div id="homeMessage" class="message"></div>
-
-          <div class="form-group">
-            <label class="form-label">날짜</label>
-            <input type="date" id="recordDate" class="form-input" style="max-width: 400px;">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">봉사 시간</label>
-            <select id="serviceHours" class="form-select">
-              <option value="">선택하세요</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">성서 연구</label>
-            <select id="bibleStudies" class="form-select">
-              <option value="">선택하세요</option>
-            </select>
-          </div>
-
-          <button class="btn btn-primary" onclick="saveRecord()">봉사 기록 저장</button>
-        </div>
-
-        <!-- 이번 달 합계 -->
-        <div class="card" style="padding: 32px 24px; background: linear-gradient(135deg, #9B7FBF 0%, #7E5EA5 100%); color: white;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <!-- 월별 선택 드롭다운 추가 -->
-            <div class="month-selector">
-              <select id="reportYear" class="month-select" onchange="loadSelectedMonthReport()"></select>
-              <select id="reportMonth" class="month-select" onchange="loadSelectedMonthReport()"></select>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
-              <div>
-                <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">시간</div>
-                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthHours">0</div>
-              </div>
-              <div>
-                <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">성서 연구</div>
-                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthStudies">0</div>
               </div>
             </div>
-          </div>
+          `).join('');
+        }
+      }
+    }
 
-          <!-- 언어 선택 -->
-          <div style="margin-bottom: 20px; text-align: center;">
-            <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px; font-size: 28px; cursor: pointer;">
-              <input type="radio" name="reportLang" value="ko" checked style="width: 32px; height: 32px; cursor: pointer;">
-              <span>한국어</span>
-            </label>
-            <label style="display: inline-flex; align-items: center; gap: 8px; margin-right: 20px; font-size: 28px; cursor: pointer;">
-              <input type="radio" name="reportLang" value="en" style="width: 32px; height: 32px; cursor: pointer;">
-              <span>English</span>
-            </label>
-            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 28px; cursor: pointer;">
-              <input type="radio" name="reportLang" value="id" style="width: 32px; height: 32px; cursor: pointer;">
-              <span>Indonesia</span>
-            </label>
-          </div>
+    // 재방문 정보 저장
+    async function saveVisit() {
+      const name = document.getElementById('visitName').value.trim();
+      const memo = document.getElementById('visitMemo').value.trim();
+      const isBibleStudy = document.getElementById('visitBibleStudy').checked;
 
-          <!-- 전송 버튼 -->
-          <button class="btn" style="background: white; color: var(--primary-color); font-weight: 700;" onclick="copyMonthlyReport()">전송</button>
-          <div id="copyMessage" style="margin-top: 12px; text-align: center; font-size: 24px; min-height: 32px;"></div>
-        </div>
+      if (!name) {
+        showMessage('visitMessage', '이름을 입력해주세요.', 'error');
+        return;
+      }
 
-        <!-- 봉사 연도 합계 -->
-        <div class="stats-card">
-          <div class="stats-year" id="serviceYear">2025 봉사 연도</div>
-          <div class="stats-hours" id="yearlyHours">0</div>
-          <div class="stats-label">시간</div>
-        </div>
-      </section>
+      const result = await callAPI('saveReturnVisit', {
+        name: name,
+        memo: memo,
+        isBibleStudy: isBibleStudy
+      });
 
-      <!-- 캘린더 섹션 -->
-      <section id="calendar" class="section">
-        <div class="card">
-          <h2 class="card-title">달력</h2>
-          
-          <div class="calendar-container">
-            <div class="calendar-header">
-              <select id="calendarYear" class="calendar-select" onchange="onCalendarDateChange()"></select>
-              <select id="calendarMonth" class="calendar-select" onchange="onCalendarDateChange()"></select>
+      if (result.success) {
+        showMessage('visitMessage', result.message, 'success');
+        document.getElementById('visitName').value = '';
+        document.getElementById('visitMemo').value = '';
+        document.getElementById('visitBibleStudy').checked = false;
+        loadVisitList();
+      } else {
+        showMessage('visitMessage', result.message, 'error');
+      }
+    }
+
+    // 재방문 목록 로드
+    async function loadVisitList() {
+      document.getElementById('visitLoading').classList.add('show');
+
+      const result = await callAPI('getReturnVisits');
+      
+      document.getElementById('visitLoading').classList.remove('show');
+      
+      const visitListEl = document.getElementById('visitList');
+      if (result.success) {
+        if (result.visits.length === 0) {
+          visitListEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👥</div><div class="empty-state-text">재방문 기록이 없습니다</div></div>';
+        } else {
+          visitListEl.innerHTML = result.visits.map(visit => `
+            <div class="visit-card">
+              <div class="visit-header">
+                <div class="visit-name">
+                  ${visit.name}
+                  ${visit.isBibleStudy ? '<span class="bible-study-badge">📖 성서 연구</span>' : ''}
+                </div>
+                <div class="visit-actions">
+                  <button class="btn btn-secondary btn-small" onclick="editVisit(${visit.id}, '${visit.name.replace(/'/g, "\\'")}', '${(visit.memo || '').replace(/'/g, "\\'")}', ${visit.isBibleStudy})">수정</button>
+                  <button class="btn btn-secondary btn-small" onclick="deleteVisit(${visit.id})">삭제</button>
+                </div>
+              </div>
+              <div class="visit-memo">${visit.memo || '메모 없음'}</div>
             </div>
-            
-            <div class="calendar-grid" id="calendarGrid">
-              <!-- 달력이 여기에 생성됩니다 -->
-            </div>
-          </div>
-        </div>
+          `).join('');
+        }
+      }
+    }
 
-        <div class="card">
-          <h
+    // 재방문 기록 삭제
+    async function deleteVisit(id) {
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+
+      const result = await callAPI('deleteReturnVisit', { id: id });
+
+      if (result.success) {
+        showMessage('visitMessage', result.message, 'success');
+        loadVisitList();
+      } else {
+        showMessage('visitMessage', result.message, 'error');
+      }
+    }
+
+    // 재방문 기록 수정 모달 열기
+    let editingVisitId = null;
+    
+    function editVisit(id, name, memo, isBibleStudy) {
+      editingVisitId = id;
+      const modal = document.getElementById('editVisitModal');
+      document.getElementById('editVisitName').value = name;
+      document.getElementById('editVisitMemo').value = memo;
+      document.getElementById('editVisitBibleStudy').checked = isBibleStudy;
+      modal.classList.add('show');
+    }
+
+    // 재방문 기록 수정 저장
+    async function saveEditedVisit() {
+      const name = document.getElementById('editVisitName').value.trim();
+      const memo = document.getElementById('editVisitMemo').value.trim();
+      const isBibleStudy = document.getElementById('editVisitBibleStudy').checked;
+
+      if (!name) {
+        alert('이름을 입력해주세요.');
+        return;
+      }
+
+      const result = await callAPI('updateReturnVisit', {
+        id: editingVisitId,
+        name: name,
+        memo: memo,
+        isBibleStudy: isBibleStudy
+      });
+
+      if (result.success) {
+        closeEditVisitModal();
+        loadVisitList();
+        showMessage('visitMessage', result.message, 'success');
+      } else {
+        alert(result.message);
+      }
+    }
+
+    // 재방문 수정 모달 닫기
+    function closeEditVisitModal() {
+      document.getElementById('editVisitModal').classList.remove('show');
+      editingVisitId = null;
+    }
+
+    // 봉사 기록 수정 모달 열기
+    let editingServiceId = null;
+    
+    function editServiceRecord(id, date, hours, studies) {
+      editingServiceId = id;
+      const modal = document.getElementById('editServiceModal');
+      document.getElementById('editServiceDate').value = date;
+      document.getElementById('editServiceHours').value = hours || '';
+      document.getElementById('editServiceStudies').value = studies || '';
+      modal.classList.add('show');
+    }
+
+    // 봉사 기록 수정 저장
+    async function saveEditedServiceRecord() {
+      const date = document.getElementById('editServiceDate').value;
+      const hours = document.getElementById('editServiceHours').value;
+      const studies = document.getElementById('editServiceStudies').value;
+
+      if (!date) {
+        alert('날짜를 선택해주세요.');
+        return;
+      }
+
+      const result = await callAPI('updateServiceRecord', {
+        id: editingServiceId,
+        date: date,
+        hours: hours,
+        bibleStudies: studies
+      });
+
+      if (result.success) {
+        closeEditServiceModal();
+        loadMonthlySummary();
+        loadCalendarData();
+        loadYearlyTotal();
+      } else {
+        alert(result.message);
+      }
+    }
+
+    // 봉사 기록 삭제 확인
+    async function deleteServiceRecordConfirm(id) {
+      if (!confirm('이 봉사 기록을 삭제하시겠습니까?')) return;
+
+      const result = await callAPI('deleteServiceRecord', { id: id });
+
+      if (result.success) {
+        loadMonthlySummary();
+        loadCalendarData();
+        loadYearlyTotal();
+      } else {
+        alert(result.message);
+      }
+    }
+
+    // 모달 닫기
+    function closeEditServiceModal() {
+      document.getElementById('editServiceModal').classList.remove('show');
+      editingServiceId = null;
+    }
+  </script>
+</body>
+</html>
