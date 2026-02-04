@@ -194,6 +194,13 @@
       font-family: inherit;
     }
 
+    /* 시간/분 입력 그리드 */
+    .time-input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
     /* 버튼 */
     .btn {
       padding: 28px 56px;
@@ -347,10 +354,10 @@
     }
 
     .calendar-select {
-      padding: 8px 12px;
+      padding: 16px 24px;
       border: 2px solid var(--border-color);
       border-radius: 8px;
-      font-size: 16px;
+      font-size: 32px;
       font-weight: 600;
       color: var(--primary-color);
       background: white;
@@ -811,9 +818,18 @@
 
           <div class="form-group">
             <label class="form-label">봉사 시간</label>
-            <select id="serviceHours" class="form-select">
-              <option value="">선택하세요</option>
-            </select>
+            <div class="time-input-grid">
+              <div>
+                <select id="serviceHours" class="form-select">
+                  <option value="">시간</option>
+                </select>
+              </div>
+              <div>
+                <select id="serviceMinutes" class="form-select">
+                  <option value="">분</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -833,7 +849,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
               <div>
                 <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">시간</div>
-                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthHours">0</div>
+                <div style="font-size: 96px; font-weight: 700; margin: 12px 0;" id="thisMonthTime">0h 0m</div>
               </div>
               <div>
                 <div style="font-size: 32px; opacity: 0.9; margin-bottom: 8px;">성서 연구</div>
@@ -866,7 +882,7 @@
         <!-- 봉사 연도 합계 -->
         <div class="stats-card">
           <div class="stats-year" id="serviceYear">2025 봉사 연도</div>
-          <div class="stats-hours" id="yearlyHours">0</div>
+          <div class="stats-hours" id="yearlyTime">0h 0m</div>
           <div class="stats-label">시간</div>
         </div>
       </section>
@@ -884,6 +900,20 @@
             
             <div class="calendar-grid" id="calendarGrid">
               <!-- 달력이 여기에 생성됩니다 -->
+            </div>
+          </div>
+
+          <!-- 월별 통계 표시 -->
+          <div style="margin-top: 24px;">
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-value" id="calendarMonthTime">0h 0m</div>
+                <div class="summary-label">시간</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" id="calendarMonthStudies">0</div>
+                <div class="summary-label">성서 연구</div>
+              </div>
             </div>
           </div>
         </div>
@@ -907,7 +937,7 @@
         <div id="monthlySummary" style="display: none;">
           <div class="summary-grid">
             <div class="summary-item">
-              <div class="summary-value" id="monthlyHours">0</div>
+              <div class="summary-value" id="monthlyTime">0h 0m</div>
               <div class="summary-label">시간</div>
             </div>
             <div class="summary-item">
@@ -1024,9 +1054,18 @@
 
       <div class="form-group">
         <label class="form-label">봉사 시간</label>
-        <select id="editServiceHours" class="form-select">
-          <option value="">선택하세요</option>
-        </select>
+        <div class="time-input-grid">
+          <div>
+            <select id="editServiceHours" class="form-select">
+              <option value="">시간</option>
+            </select>
+          </div>
+          <div>
+            <select id="editServiceMinutes" class="form-select">
+              <option value="">분</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -1039,7 +1078,6 @@
       <button class="btn btn-primary" onclick="saveEditedServiceRecord()">수정 완료</button>
     </div>
   </div>
-
   <script>
     // Apps Script Web API URL
     const API_URL = 'https://script.google.com/macros/s/AKfycbySZUlZ23bAlrVSu2vmI1ddi19G1HnSgnknAS3fB8B_nRwbXEELo6_mPJxku44IyxRm/exec';
@@ -1076,7 +1114,6 @@
       if (token && email) {
         setToken(token);
         setUserEmail(email);
-        // URL 파라미터 제거
         window.history.replaceState({}, document.title, window.location.pathname);
         return true;
       }
@@ -1152,15 +1189,12 @@
 
     // 초기화
     document.addEventListener('DOMContentLoaded', function() {
-      // URL 콜백 확인 (auth에서 돌아온 경우)
       const authSuccess = checkAuthCallback();
       
-      // 인증 확인
       if (!checkAuth()) {
-        return; // 로그인 화면 표시됨
+        return;
       }
       
-      // 인증된 경우 앱 초기화
       initializeForm();
       loadUserInfo();
       loadYearlyTotal();
@@ -1237,6 +1271,12 @@
           calendarRecordsData[record.date] = record;
         });
         
+        // 달력 상단에 월별 통계 표시
+        const totalHours = result.totalHours || 0;
+        const totalMinutes = result.totalMinutes || 0;
+        document.getElementById('calendarMonthTime').textContent = `${totalHours}h ${totalMinutes}m`;
+        document.getElementById('calendarMonthStudies').textContent = result.totalBibleStudies || 0;
+        
         renderCalendar();
       }
     }
@@ -1287,7 +1327,7 @@
         let dayInfo = '';
         if (calendarRecordsData[dateStr]) {
           const record = calendarRecordsData[dateStr];
-          dayInfo = `<div class="calendar-day-info">${record.hours}h ${record.bibleStudies}s</div>`;
+          dayInfo = `<div class="calendar-day-info">${record.hours}h ${record.minutes}m ${record.bibleStudies}s</div>`;
         }
         
         html += `<div class="${className}" ${onclick}>
@@ -1319,11 +1359,11 @@
         <div class="day-detail-record">
           <div class="day-detail-record-header">
             <div class="day-detail-record-info">
-              <span>⏱️ ${r.hours}시간</span>
+              <span>⏱️ ${r.hours}시간 ${r.minutes}분</span>
               <span>📖 ${r.bibleStudies}명</span>
             </div>
             <div>
-              <button class="btn btn-secondary btn-small" onclick="editServiceRecordFromDay(${r.id}, '${dateStr}', ${r.hours}, ${r.bibleStudies})">수정</button>
+              <button class="btn btn-secondary btn-small" onclick="editServiceRecordFromDay(${r.id}, '${dateStr}', ${r.hours}, ${r.minutes}, ${r.bibleStudies})">수정</button>
               <button class="btn btn-secondary btn-small" onclick="deleteServiceRecordFromDay(${r.id})">삭제</button>
             </div>
           </div>
@@ -1340,9 +1380,9 @@
     }
 
     // 일별 상세에서 수정
-    function editServiceRecordFromDay(id, date, hours, studies) {
+    function editServiceRecordFromDay(id, date, hours, minutes, studies) {
       closeDayDetail();
-      editServiceRecord(id, date, hours, studies);
+      editServiceRecord(id, date, hours, minutes, studies);
     }
 
     // 일별 상세에서 삭제
@@ -1365,13 +1405,24 @@
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('recordDate').value = today;
 
+      // 시간 셀렉트 (0-24시간)
       const hoursSelect = document.getElementById('serviceHours');
-      for (let i = 1; i <= 24; i++) {
+      for (let i = 0; i <= 24; i++) {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = i + '시간';
         hoursSelect.appendChild(option);
       }
+
+      // 분 셀렉트 (0, 15, 30, 45)
+      const minutesSelect = document.getElementById('serviceMinutes');
+      const minuteOptions = [0, 15, 30, 45];
+      minuteOptions.forEach(min => {
+        const option = document.createElement('option');
+        option.value = min;
+        option.textContent = min + '분';
+        minutesSelect.appendChild(option);
+      });
 
       const studiesSelect = document.getElementById('bibleStudies');
       for (let i = 0; i <= 99; i++) {
@@ -1403,12 +1454,20 @@
 
       // 모달 셀렉트 박스 초기화
       const editHoursSelect = document.getElementById('editServiceHours');
-      for (let i = 1; i <= 24; i++) {
+      for (let i = 0; i <= 24; i++) {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = i + '시간';
         editHoursSelect.appendChild(option);
       }
+
+      const editMinutesSelect = document.getElementById('editServiceMinutes');
+      minuteOptions.forEach(min => {
+        const option = document.createElement('option');
+        option.value = min;
+        option.textContent = min + '분';
+        editMinutesSelect.appendChild(option);
+      });
 
       const editStudiesSelect = document.getElementById('editServiceStudies');
       for (let i = 0; i <= 99; i++) {
@@ -1454,6 +1513,7 @@
     async function saveRecord() {
       const date = document.getElementById('recordDate').value;
       const hours = document.getElementById('serviceHours').value;
+      const minutes = document.getElementById('serviceMinutes').value;
       const bibleStudies = document.getElementById('bibleStudies').value;
 
       if (!date) {
@@ -1464,12 +1524,14 @@
       const result = await callAPI('saveServiceRecord', {
         date: date,
         hours: hours,
+        minutes: minutes,
         bibleStudies: bibleStudies
       });
 
       if (result.success) {
         showMessage('homeMessage', result.message, 'success');
         document.getElementById('serviceHours').value = '';
+        document.getElementById('serviceMinutes').value = '';
         document.getElementById('bibleStudies').value = '';
         loadYearlyTotal();
       } else {
@@ -1483,8 +1545,15 @@
       
       if (result.success) {
         document.getElementById('serviceYear').textContent = result.year + ' 봉사 연도';
-        document.getElementById('yearlyHours').textContent = result.totalHours;
-        document.getElementById('thisMonthHours').textContent = result.thisMonthHours;
+        
+        const yearHours = result.totalHours || 0;
+        const yearMinutes = result.totalMinutes || 0;
+        document.getElementById('yearlyTime').textContent = `${yearHours}h ${yearMinutes}m`;
+        
+        const monthHours = result.thisMonthHours || 0;
+        const monthMinutes = result.thisMonthMinutes || 0;
+        document.getElementById('thisMonthTime').textContent = `${monthHours}h ${monthMinutes}m`;
+        
         document.getElementById('thisMonthStudies').textContent = result.thisMonthStudies;
         document.getElementById('currentMonthLabel').textContent = result.currentMonth + '월';
         
@@ -1492,10 +1561,18 @@
         window.currentMonthData = {
           year: now.getFullYear(),
           month: now.getMonth() + 1,
-          hours: result.thisMonthHours,
+          hours: monthHours,
+          minutes: monthMinutes,
           studies: result.thisMonthStudies
         };
       }
+    }
+
+    // 시간을 숫자로 변환 (보고서 생성용)
+    function formatTimeForReport(hours, minutes) {
+      const totalMinutes = (hours * 60) + minutes;
+      const totalHours = totalMinutes / 60;
+      return totalHours.toFixed(2).replace(/\.?0+$/, '');
     }
 
     // 월별 보고서 클립보드 복사
@@ -1506,10 +1583,10 @@
       }
 
       const lang = document.querySelector('input[name="reportLang"]:checked').value;
-      const { year, month, hours, studies } = window.currentMonthData;
+      const { year, month, hours, minutes, studies } = window.currentMonthData;
       
-      const hoursValue = hours || 0;
       const studiesValue = studies || 0;
+      const timeValue = formatTimeForReport(hours || 0, minutes || 0);
       
       let report = '';
       
@@ -1517,7 +1594,7 @@
         report = `${year}년 ${month}월 봉사 보고
 
 성서 연구: ${studiesValue}
-시간: ${hoursValue}
+시간: ${timeValue}
 비고: -`;
       } else if (lang === 'en') {
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
@@ -1525,7 +1602,7 @@
         report = `FIELD SERVICE REPORT ${monthNames[month - 1]} ${year}
 
 Bible studies: ${studiesValue}
-Hours: ${hoursValue}
+Hours: ${timeValue}
 Comments: -`;
       } else if (lang === 'id') {
         const monthNamesID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -1533,7 +1610,7 @@ Comments: -`;
         report = `LAPORAN DINAS LAPANGAN ${monthNamesID[month - 1]} ${year}
 
 Pelajaran Alkitab: ${studiesValue}
-Jam: ${hoursValue}
+Jam: ${timeValue}
 Keterangan: -`;
       }
 
@@ -1587,7 +1664,10 @@ Keterangan: -`;
       
       if (result.success) {
         document.getElementById('monthlySummary').style.display = 'block';
-        document.getElementById('monthlyHours').textContent = result.totalHours;
+        
+        const totalHours = result.totalHours || 0;
+        const totalMinutes = result.totalMinutes || 0;
+        document.getElementById('monthlyTime').textContent = `${totalHours}h ${totalMinutes}m`;
         document.getElementById('monthlyStudies').textContent = result.totalBibleStudies;
 
         const dailyRecordsEl = document.getElementById('dailyRecords');
@@ -1599,12 +1679,12 @@ Keterangan: -`;
               <div class="record-header">
                 <div class="record-date">${record.date}</div>
                 <div class="record-actions">
-                  <button class="btn btn-secondary btn-small" onclick="editServiceRecord(${record.records[0].id}, '${record.date}', ${record.hours}, ${record.bibleStudies})">수정</button>
+                  <button class="btn btn-secondary btn-small" onclick="editServiceRecord(${record.records[0].id}, '${record.date}', ${record.records[0].hours}, ${record.records[0].minutes}, ${record.bibleStudies})">수정</button>
                   <button class="btn btn-secondary btn-small" onclick="deleteServiceRecordConfirm(${record.records[0].id})">삭제</button>
                 </div>
               </div>
               <div class="record-details">
-                <div class="record-detail">⏱️ ${record.hours}시간</div>
+                <div class="record-detail">⏱️ ${record.hours}시간 ${record.minutes}분</div>
                 <div class="record-detail">📖 ${record.bibleStudies}명</div>
               </div>
             </div>
@@ -1735,11 +1815,12 @@ Keterangan: -`;
     // 봉사 기록 수정 모달 열기
     let editingServiceId = null;
     
-    function editServiceRecord(id, date, hours, studies) {
+    function editServiceRecord(id, date, hours, minutes, studies) {
       editingServiceId = id;
       const modal = document.getElementById('editServiceModal');
       document.getElementById('editServiceDate').value = date;
       document.getElementById('editServiceHours').value = hours || '';
+      document.getElementById('editServiceMinutes').value = minutes || '';
       document.getElementById('editServiceStudies').value = studies || '';
       modal.classList.add('show');
     }
@@ -1748,6 +1829,7 @@ Keterangan: -`;
     async function saveEditedServiceRecord() {
       const date = document.getElementById('editServiceDate').value;
       const hours = document.getElementById('editServiceHours').value;
+      const minutes = document.getElementById('editServiceMinutes').value;
       const studies = document.getElementById('editServiceStudies').value;
 
       if (!date) {
@@ -1759,6 +1841,7 @@ Keterangan: -`;
         id: editingServiceId,
         date: date,
         hours: hours,
+        minutes: minutes,
         bibleStudies: studies
       });
 
