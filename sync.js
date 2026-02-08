@@ -1,6 +1,5 @@
 // Google Sheets 동기화
 const CLIENT_ID = '158141256844-5tqlfan8j8huka0q0pdd52tvrjnsj0mk.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyApEnzkoZv9cwJqQ9OJzQm15Y-2NzmW1vg';
 const SPREADSHEET_ID = '1zHEbIgnEWCcZ6WDQ88bepW4Zy990D7DyUJevTjeD6IM';
 const SHEET_NAME = '봉사 기록 앱 2';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
@@ -14,7 +13,6 @@ function initGoogleAPI() {
   return new Promise((resolve) => {
     gapi.load('client', async () => {
       await gapi.client.init({
-        apiKey: API_KEY,
         discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
       });
       
