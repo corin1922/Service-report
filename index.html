@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JW Service - 봉사 기록</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- 아이콘 -->
+  <link rel="icon" type="image/png" sizes="32x32" href="jw-service-icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="jw-service-icon-512.png">
+  
+  <!-- 스타일 -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Google API -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
+  
+  <!-- PWA 메타 -->
+  <meta name="theme-color" content="#7E5EA5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="봉사기록">
+</head>
+<body>
+  
+  <!-- 헤더 -->
+  <header class="header">
+    <div class="header-content">
+      <img src="jw-service-icon-192.png" alt="JW Service" class="header-icon">
+      <h1>봉사 기록</h1>
+    </div>
+  </header>
+  
+  <!-- 메시지 영역 -->
+  <div id="message" style="display:none;"></div>
+  
+  <!-- 네비게이션 -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="home">홈</button>
+    <button class="nav-tab" data-tab="visits">재방문 기록</button>
+  </nav>
+  
+  <!-- 메인 컨텐츠 -->
+  <main class="container">
+    
+    <!-- 홈 탭 -->
+    <div id="home-tab" class="tab-content active">
+      
+      <!-- 오늘의 봉사 기록 -->
+      <div class="card">
+        <h2 class="card-title">📝 오늘의 봉사 기록</h2>
+        
+        <div class="form-group">
+          <label class="form-label">날짜</label>
+          <input type="date" id="service-date" class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">봉사 시간</label>
+          <div style="display:flex;gap:12px;">
+            <select id="service-hours" class="form-select" style="flex:1;">
+              <option value="0">0시간</option>
+              <option value="1">1시간</option>
+              <option value="2">2시간</option>
+              <option value="3">3시간</option>
+              <option value="4">4시간</option>
+              <option value="5">5시간</option>
+              <option value="6">6시간</option>
+              <option value="7">7시간</option>
+              <option value="8">8시간</option>
+              <option value="9">9시간</option>
+              <option value="10">10시간</option>
+            </select>
+            
+            <select id="service-minutes" class="form-select" style="flex:1;">
+              <option value="0">0분</option>
+              <option value="5">5분</option>
+              <option value="10">10분</option>
+              <option value="15">15분</option>
+              <option value="20">20분</option>
+              <option value="25">25분</option>
+              <option value="30">30분</option>
+              <option value="35">35분</option>
+              <option value="40">40분</option>
+              <option value="45">45분</option>
+              <option value="50">50분</option>
+              <option value="55">55분</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">성서 연구</label>
+          <select id="service-studies" class="form-select">
+            <option value="0">0개</option>
+            <option value="1">1개</option>
+            <option value="2">2개</option>
+            <option value="3">3개</option>
+            <option value="4">4개</option>
+            <option value="5">5개</option>
+          </select>
+        </div>
+        
+        <button id="save-service" class="btn btn-primary btn-block">봉사 기록 저장</button>
+      </div>
+      
+      <!-- 이번 달 통계 -->
+      <div class="card">
+        <h2 class="card-title">📊 이번 달 통계</h2>
+        
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <select id="stats-year" class="form-select" style="flex:1;">
+            <option value="2024">2024년</option>
+            <option value="2025">2025년</option>
+            <option value="2026" selected>2026년</option>
+            <option value="2027">2027년</option>
+          </select>
+          
+          <select id="stats-month" class="form-select" style="flex:1;">
+            <option value="1">1월</option>
+            <option value="2" selected>2월</option>
+            <option value="3">3월</option>
+            <option value="4">4월</option>
+            <option value="5">5월</option>
+            <option value="6">6월</option>
+            <option value="7">7월</option>
+            <option value="8">8월</option>
+            <option value="9">9월</option>
+            <option value="10">10월</option>
+            <option value="11">11월</option>
+            <option value="12">12월</option>
+          </select>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">총 봉사 시간</div>
+            <div class="stat-value" id="monthly-hours">0</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-label">성서 연구</div>
+            <div class="stat-value" id="monthly-studies">0</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 봉사 연도 총계 -->
+      <div class="card" style="background: linear-gradient(135deg, #7E5EA5 0%, #6b4f8f 100%); color: white;">
+        <h3 style="text-align: center; color: white; margin-bottom: 12px; font-size: 36px;" id="service-year-label">2026 봉사 연도</h3>
+        <div style="text-align: center; font-size: 96px; font-weight: 700; color: white;" id="service-year-total">0</div>
+        <div style="text-align: center; color: white; opacity: 0.9; margin-top: 8px; font-size: 28px;">총 봉사 시간</div>
+      </div>
+      
+      <!-- Google Sheets 동기화 -->
+      <div class="card">
+        <h2 class="card-title">☁️ Google Sheets 동기화</h2>
+        
+        <div class="sync-section">
+          <button id="backup-btn" class="btn btn-primary" style="flex:1;">
+            📤 백업하기
+          </button>
+          <button id="restore-btn" class="btn btn-success" style="flex:1;">
+            📥 복원하기
+          </button>
+        </div>
+        
+        <div class="sync-status">
+          💡 백업: 폰 데이터를 Google Sheets에 저장<br>
+          💡 복원: Google Sheets 데이터를 폰으로 가져오기
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- 재방문 탭 -->
+    <div id="visits-tab" class="tab-content">
+      
+      <!-- 재방문 추가 -->
+      <div class="card">
+        <h2 class="card-title">➕ 재방문 추가</h2>
+        
+        <div class="form-group">
+          <label class="form-label">이름</label>
+          <input type="text" id="visit-name" class="form-input" placeholder="이름을 입력하세요">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">메모</label>
+          <textarea id="visit-memo" class="form-textarea" placeholder="메모를 입력하세요"></textarea>
+        </div>
+        
+        <div class="checkbox-group">
+          <input type="checkbox" id="visit-bible-study">
+          <label for="visit-bible-study">성서 연구</label>
+        </div>
+        
+        <button id="save-visit" class="btn btn-primary btn-block" style="margin-top:20px;">재방문 저장</button>
+      </div>
+      
+      <!-- 재방문 목록 -->
+      <div class="card">
+        <h2 class="card-title">📋 재방문 목록</h2>
+        <div id="visits-list" class="visit-list"></div>
+      </div>
+      
+    </div>
+    
+  </main>
+  
+  <!-- 스크립트 -->
+  <script src="db.js"></script>
+  <script src="sync.js"></script>
+  <script src="app.js"></script>
+  
+</body>
+</html>
