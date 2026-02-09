@@ -1,29 +1,22 @@
-// Google Sheets 동기화
+// Google Sheets 동기화 (OAuth 전용)
 const CLIENT_ID = '158141256844-5tqlfan8j8huka0q0pdd52tvrjnsj0mk.apps.googleusercontent.com';
 const SPREADSHEET_ID = '1zHEbIgnEWCcZ6WDQ88bepW4Zy990D7DyUJevTjeD6IM';
 const SHEET_NAME = '봉사 기록 앱 2';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 
 let tokenClient;
 let accessToken = null;
 let userEmail = null;
 
-// Google API 초기화
+// Google API 초기화 (간소화)
 function initGoogleAPI() {
   return new Promise((resolve) => {
-    gapi.load('client', async () => {
-      await gapi.client.init({
-        discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-      });
-      
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: '', // 나중에 설정
-      });
-      
-      resolve();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: '', // 나중에 설정
     });
+    resolve();
   });
 }
 
@@ -37,7 +30,6 @@ function signInGoogle() {
       }
       
       accessToken = response.access_token;
-      gapi.client.setToken({ access_token: accessToken });
       
       // 사용자 이메일 가져오기
       try {
@@ -63,7 +55,6 @@ async function backupToSheets() {
   }
   
   const records = await getAllServiceRecords();
-  const visits = await getAllReturnVisits();
   
   if (records.length === 0) {
     throw new Error('백업할 데이터가 없습니다.');
@@ -74,20 +65,29 @@ async function backupToSheets() {
     userEmail,
     record.date,
     record.hours,
-    0, // 재방문수 (현재 미사용)
+    0, // 재방문수
     record.studies,
-    '', // 재방문이름 (현재 미사용)
+    '', // 재방문이름
     record.memo || '',
-    '' // 성서연구여부 (현재 미사용)
+    '' // 성서연구여부
   ]);
   
   try {
-    const response = await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:I`,
-      valueInputOption: 'USER_ENTERED',
-      resource: { values }
-    });
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!A:I:append?valueInputOption=USER_ENTERED`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ values })
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`백업 실패: ${response.status}`);
+    }
     
     return {
       success: true,
@@ -105,12 +105,21 @@ async function restoreFromSheets() {
   }
   
   try {
-    const response = await gapi.client.sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A2:I`,
-    });
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!A2:I`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        }
+      }
+    );
     
-    const rows = response.result.values;
+    if (!response.ok) {
+      throw new Error(`복원 실패: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const rows = data.values;
     
     if (!rows || rows.length === 0) {
       throw new Error('복원할 데이터가 없습니다.');
@@ -155,6 +164,5 @@ function signOutGoogle() {
     google.accounts.oauth2.revoke(accessToken);
     accessToken = null;
     userEmail = null;
-    gapi.client.setToken(null);
   }
 }
