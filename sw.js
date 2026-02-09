@@ -1,5 +1,5 @@
 // Service Worker - 오프라인 캐싱
-const CACHE_NAME = 'jw-service-v1';
+const CACHE_NAME = 'jw-service-v2';
 const urlsToCache = [
   '/Service-report/',
   '/Service-report/index.html',
