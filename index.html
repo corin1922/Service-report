@@ -30,7 +30,7 @@
   <header class="header">
     <div class="header-content">
       <img src="jw-service-icon-192.png" alt="JW Service" class="header-icon">
-      <h1>봉사 기록</h1>
+      <h1>JW Service</h1>
     </div>
   </header>
   
@@ -40,6 +40,7 @@
   <!-- 네비게이션 -->
   <nav class="nav-tabs">
     <button class="nav-tab active" data-tab="home">홈</button>
+    <button class="nav-tab" data-tab="calendar">캘린더</button>
     <button class="nav-tab" data-tab="visits">재방문 기록</button>
   </nav>
   
@@ -205,6 +206,34 @@
       <div class="card">
         <h2 class="card-title">📋 재방문 목록</h2>
         <div id="visits-list" class="visit-list"></div>
+      </div>
+      
+    </div>
+    
+    <!-- 캘린더 탭 -->
+    <div id="calendar-tab" class="tab-content">
+      
+      <!-- 캘린더 -->
+      <div class="card calendar-container">
+        <div class="calendar-header">
+          <h3 id="calendar-month-year">2026년 2월</h3>
+          <div class="calendar-nav">
+            <button id="prev-month">이전</button>
+            <button id="next-month">다음</button>
+          </div>
+        </div>
+        
+        <div class="calendar-grid">
+          <div class="calendar-day-header">일</div>
+          <div class="calendar-day-header">월</div>
+          <div class="calendar-day-header">화</div>
+          <div class="calendar-day-header">수</div>
+          <div class="calendar-day-header">목</div>
+          <div class="calendar-day-header">금</div>
+          <div class="calendar-day-header">토</div>
+          
+          <div id="calendar-days"></div>
+        </div>
       </div>
       
     </div>
