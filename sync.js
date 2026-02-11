@@ -135,23 +135,41 @@ async function restoreFromSheets() {
     // 현재 로컬 데이터 삭제
     await clearAllData();
     
-    // 데이터 복원
-    let count = 0;
+    // 봉사 기록과 재방문 기록 분리
+    let recordCount = 0;
+    let visitCount = 0;
+    const visitNames = new Set(); // 중복 제거용
+    
     for (const row of myRows) {
-      const record = {
-        date: row[2],
-        hours: parseFloat(row[3]) || 0,
-        studies: parseInt(row[5]) || 0,
-        memo: row[7] || ''
-      };
+      // 봉사 기록
+      if (row[2] && row[3]) { // 날짜와 시간이 있으면
+        const record = {
+          date: row[2],
+          hours: parseFloat(row[3]) || 0,
+          studies: parseInt(row[5]) || 0,
+          memo: row[7] || ''
+        };
+        await addServiceRecord(record);
+        recordCount++;
+      }
       
-      await addServiceRecord(record);
-      count++;
+      // 재방문 기록 (중복 제거)
+      if (row[6] && !visitNames.has(row[6])) { // 재방문이름이 있고 중복 아니면
+        visitNames.add(row[6]);
+        const visit = {
+          name: row[6],
+          memo: row[7] || '',
+          isBibleStudy: row[8] === 'Y' || row[8] === 'y'
+        };
+        await addReturnVisit(visit);
+        visitCount++;
+      }
     }
     
     return {
       success: true,
-      count: count
+      count: recordCount,
+      visits: visitCount
     };
   } catch (error) {
     throw new Error('복원 중 오류가 발생했습니다: ' + error.message);
