@@ -22,6 +22,9 @@ async function initApp() {
     // 홈 탭 초기화
     initHomeTab();
     
+    // 캘린더 탭 초기화
+    initCalendarTab();
+    
     // 재방문 탭 초기화
     initVisitsTab();
     
@@ -101,6 +104,11 @@ async function saveServiceRecord() {
     // 통계 업데이트
     await loadMonthlyStats();
     await loadServiceYearTotal();
+    
+    // 캘린더 업데이트
+    if (typeof renderCalendar === 'function') {
+      await renderCalendar();
+    }
     
   } catch (error) {
     console.error('저장 오류:', error);
@@ -227,6 +235,106 @@ async function performRestore() {
 // 재방문 탭 초기화
 function initVisitsTab() {
   document.getElementById('save-visit').addEventListener('click', saveReturnVisit);
+}
+
+// 캘린더 탭 초기화
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth() + 1;
+
+function initCalendarTab() {
+  document.getElementById('prev-month').addEventListener('click', () => {
+    calendarMonth--;
+    if (calendarMonth < 1) {
+      calendarMonth = 12;
+      calendarYear--;
+    }
+    renderCalendar();
+  });
+  
+  document.getElementById('next-month').addEventListener('click', () => {
+    calendarMonth++;
+    if (calendarMonth > 12) {
+      calendarMonth = 1;
+      calendarYear++;
+    }
+    renderCalendar();
+  });
+  
+  renderCalendar();
+}
+
+// 캘린더 렌더링
+async function renderCalendar() {
+  // 월/년 표시 업데이트
+  document.getElementById('calendar-month-year').textContent = 
+    `${calendarYear}년 ${calendarMonth}월`;
+  
+  // 해당 월의 기록 가져오기
+  const records = await getMonthlyRecords(calendarYear, calendarMonth);
+  
+  // 날짜별 시간 집계
+  const recordsByDate = {};
+  records.forEach(record => {
+    const date = record.date;
+    if (!recordsByDate[date]) {
+      recordsByDate[date] = 0;
+    }
+    recordsByDate[date] += record.hours;
+  });
+  
+  // 캘린더 그리드 생성
+  const firstDay = new Date(calendarYear, calendarMonth - 1, 1);
+  const lastDay = new Date(calendarYear, calendarMonth, 0);
+  const prevLastDay = new Date(calendarYear, calendarMonth - 1, 0);
+  
+  const firstDayWeek = firstDay.getDay();
+  const lastDate = lastDay.getDate();
+  const prevLastDate = prevLastDay.getDate();
+  
+  let days = '';
+  
+  // 이전 달 날짜
+  for (let i = firstDayWeek - 1; i >= 0; i--) {
+    const day = prevLastDate - i;
+    days += `<div class="calendar-day other-month">
+      <div class="calendar-day-number">${day}</div>
+    </div>`;
+  }
+  
+  // 현재 달 날짜
+  const today = new Date();
+  const isCurrentMonth = (calendarYear === today.getFullYear() && 
+                          calendarMonth === today.getMonth() + 1);
+  
+  for (let day = 1; day <= lastDate; day++) {
+    const dateStr = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const hours = recordsByDate[dateStr] || 0;
+    
+    let classes = 'calendar-day';
+    if (isCurrentMonth && day === today.getDate()) {
+      classes += ' today';
+    }
+    if (hours > 0) {
+      classes += ' has-record';
+    }
+    
+    days += `<div class="${classes}">
+      <div class="calendar-day-number">${day}</div>
+      ${hours > 0 ? `<div class="calendar-day-hours">${hours.toFixed(1)}시간</div>` : ''}
+    </div>`;
+  }
+  
+  // 다음 달 날짜 (7의 배수 맞추기)
+  const totalCells = firstDayWeek + lastDate;
+  const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  
+  for (let day = 1; day <= remainingCells; day++) {
+    days += `<div class="calendar-day other-month">
+      <div class="calendar-day-number">${day}</div>
+    </div>`;
+  }
+  
+  document.getElementById('calendar-days').innerHTML = days;
 }
 
 // 재방문 저장
