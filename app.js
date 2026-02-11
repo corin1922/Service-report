@@ -67,6 +67,9 @@ function initHomeTab() {
   document.getElementById('stats-year').addEventListener('change', loadMonthlyStats);
   document.getElementById('stats-month').addEventListener('change', loadMonthlyStats);
   
+  // 전송 버튼
+  document.getElementById('send-report').addEventListener('click', sendMonthlyReport);
+  
   // 동기화 버튼들
   document.getElementById('backup-btn').addEventListener('click', confirmBackup);
   document.getElementById('restore-btn').addEventListener('click', confirmRestore);
@@ -114,6 +117,53 @@ async function saveServiceRecord() {
     console.error('저장 오류:', error);
     showMessage('저장 중 오류가 발생했습니다.', 'error');
   }
+}
+
+// 월별 보고서 전송
+async function sendMonthlyReport() {
+  const year = parseInt(document.getElementById('stats-year').value);
+  const month = parseInt(document.getElementById('stats-month').value);
+  const lang = document.querySelector('input[name="report-lang"]:checked').value;
+  
+  try {
+    const records = await getMonthlyRecords(year, month);
+    const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+    const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
+    
+    // 언어별 메시지
+    const messages = {
+      ko: `${year}년 ${month}월 봉사 보고\n\n시간: ${totalHours.toFixed(1)}시간\n성서 연구: ${totalStudies}개`,
+      en: `${year} ${getMonthName(month, 'en')} Service Report\n\nHours: ${totalHours.toFixed(1)}\nBible Studies: ${totalStudies}`,
+      id: `Laporan Pelayanan ${getMonthName(month, 'id')} ${year}\n\nJam: ${totalHours.toFixed(1)}\nPelajaran Alkitab: ${totalStudies}`
+    };
+    
+    const message = messages[lang];
+    
+    // 클립보드에 복사
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(message);
+      showMessage('클립보드에 복사되었습니다!', 'success');
+    } else {
+      // 폴백: alert로 표시
+      alert(message);
+      showMessage('보고서가 생성되었습니다.', 'success');
+    }
+    
+  } catch (error) {
+    console.error('전송 오류:', error);
+    showMessage('전송 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 월 이름 가져오기
+function getMonthName(month, lang) {
+  const names = {
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 
+         'July', 'August', 'September', 'October', 'November', 'December'],
+    id: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+  };
+  return names[lang][month - 1];
 }
 
 // 월별 통계 로드
@@ -260,7 +310,53 @@ function initCalendarTab() {
     renderCalendar();
   });
   
+  // 월별 요약 보기 버튼
+  document.getElementById('view-monthly-records').addEventListener('click', showMonthlyRecordsSummary);
+  
   renderCalendar();
+}
+
+// 월별 기록 요약 보기
+async function showMonthlyRecordsSummary() {
+  const year = parseInt(document.getElementById('view-year').value);
+  const month = parseInt(document.getElementById('view-month').value);
+  
+  try {
+    const records = await getMonthlyRecords(year, month);
+    
+    if (records.length === 0) {
+      showMessage(`${year}년 ${month}월에는 기록이 없습니다.`, 'error');
+      return;
+    }
+    
+    const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+    const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
+    
+    // 날짜별로 정렬
+    records.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    let summary = `${year}년 ${month}월 봉사 기록\n\n`;
+    summary += `총 시간: ${totalHours.toFixed(1)}시간\n`;
+    summary += `성서 연구: ${totalStudies}개\n\n`;
+    summary += `상세 기록:\n`;
+    summary += `${'-'.repeat(30)}\n`;
+    
+    records.forEach(record => {
+      const date = new Date(record.date);
+      const day = date.getDate();
+      summary += `${month}/${day}: ${record.hours.toFixed(1)}시간`;
+      if (record.studies > 0) {
+        summary += ` | 성서연구 ${record.studies}개`;
+      }
+      summary += `\n`;
+    });
+    
+    alert(summary);
+    
+  } catch (error) {
+    console.error('요약 조회 오류:', error);
+    showMessage('요약을 불러오는 중 오류가 발생했습니다.', 'error');
+  }
 }
 
 // 캘린더 렌더링
@@ -296,8 +392,8 @@ async function renderCalendar() {
   // 이전 달 날짜
   for (let i = firstDayWeek - 1; i >= 0; i--) {
     const day = prevLastDate - i;
-    days += `<div class="calendar-day other-month">
-      <div class="calendar-day-number">${day}</div>
+    days += `<div style="aspect-ratio: 1; padding: 8px; background: #fafafa; color: #ccc; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; justify-content: center; align-items: center; font-size: 16px;">
+      ${day}
     </div>`;
   }
   
@@ -310,17 +406,23 @@ async function renderCalendar() {
     const dateStr = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const hours = recordsByDate[dateStr] || 0;
     
-    let classes = 'calendar-day';
+    let bgColor = '#ffffff';
+    let textColor = '#333';
+    let fontWeight = 'normal';
+    
     if (isCurrentMonth && day === today.getDate()) {
-      classes += ' today';
-    }
-    if (hours > 0) {
-      classes += ' has-record';
+      bgColor = '#7E5EA5';
+      textColor = '#ffffff';
+      fontWeight = '700';
+    } else if (hours > 0) {
+      bgColor = '#7E5EA5';
+      textColor = '#ffffff';
+      fontWeight = '600';
     }
     
-    days += `<div class="${classes}">
-      <div class="calendar-day-number">${day}</div>
-      ${hours > 0 ? `<div class="calendar-day-hours">${hours.toFixed(1)}시간</div>` : ''}
+    days += `<div style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <div style="font-size: 16px; font-weight: ${fontWeight}; margin-bottom: 4px;">${day}</div>
+      ${hours > 0 ? `<div style="font-size: 11px; opacity: 0.9;">${hours.toFixed(1)}h</div>` : ''}
     </div>`;
   }
   
@@ -329,12 +431,12 @@ async function renderCalendar() {
   const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
   
   for (let day = 1; day <= remainingCells; day++) {
-    days += `<div class="calendar-day other-month">
-      <div class="calendar-day-number">${day}</div>
+    days += `<div style="aspect-ratio: 1; padding: 8px; background: #fafafa; color: #ccc; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; justify-content: center; align-items: center; font-size: 16px;">
+      ${day}
     </div>`;
   }
   
-  document.getElementById('calendar-days').innerHTML = days;
+  document.getElementById('calendar-days-grid').innerHTML = days;
 }
 
 // 재방문 저장
