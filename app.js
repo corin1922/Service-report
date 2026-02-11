@@ -28,6 +28,9 @@ async function initApp() {
     // 재방문 탭 초기화
     initVisitsTab();
     
+    // 마지막 백업 시각 표시
+    updateLastBackupTime();
+
     // 초기 데이터 로드
     await loadMonthlyStats();
     await loadServiceYearTotal();
@@ -146,14 +149,27 @@ async function sendMonthlyReport() {
     }
     
     // 클립보드에 복사
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(message);
-      showMessage('클립보드에 복사되었습니다!', 'success');
-    } else {
-      // 폴백: alert로 표시
-      alert(message);
-      showMessage('보고서가 생성되었습니다.', 'success');
-    }
+try {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(message);
+    showMessage('클립보드에 복사되었습니다.', 'success');
+  } else {
+    // 폴백: 수동 복사
+    const textArea = document.createElement('textarea');
+    textArea.value = message;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    showMessage('클립보드에 복사되었습니다.', 'success');
+  }
+} catch (err) {
+  console.error('복사 오류:', err);
+  alert(message);
+  showMessage('보고서가 생성되었습니다.', 'success');
+}
     
   } catch (error) {
     console.error('전송 오류:', error);
@@ -247,8 +263,14 @@ async function performBackup() {
     const result = await backupToSheets();
     
     if (result.success) {
-      showMessage(`✅ 백업 완료!\n${result.count}개 기록이 업로드되었습니다.`, 'success');
-    }
+  // 백업 시각 저장
+  const now = new Date();
+  const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  localStorage.setItem('lastBackupTime', timeStr);
+  updateLastBackupTime();
+  
+  showMessage(`✅ 백업 완료!\n${result.count}개 기록이 업로드되었습니다.`, 'success');
+}
     
   } catch (error) {
     console.error('백업 오류:', error);
@@ -570,3 +592,12 @@ if ('serviceWorker' in navigator) {
 
 // 앱 시작
 window.addEventListener('DOMContentLoaded', initApp);
+
+// 마지막 백업 시각 업데이트
+function updateLastBackupTime() {
+  const lastTime = localStorage.getItem('lastBackupTime');
+  const element = document.getElementById('last-backup-time');
+  if (element) {
+    element.textContent = lastTime ? `마지막 백업: ${lastTime}` : '마지막 백업: -';
+  }
+}
