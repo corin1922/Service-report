@@ -438,8 +438,8 @@ async function renderCalendar() {
     let infoHtml = '';
     if (hours > 0) {
       const hoursText = hours.toFixed(1) + 'h';
-      const studiesText = studies > 0 ? ' ' + studies + 'm' : '';
-      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}${studiesText}</div>`;
+      const studiesText = studies > 0 ? ' ' + studies + 's' : '';
+      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}<span style="color: #FFD700;">${studiesText}</div>`;
     }
     
     days += `<div style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center;">
