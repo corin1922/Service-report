@@ -131,13 +131,19 @@ async function sendMonthlyReport() {
     const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
     
     // 언어별 메시지
-    const messages = {
-      ko: `${year}년 ${month}월 봉사 보고\n\n시간: ${totalHours.toFixed(1)}시간\n성서 연구: ${totalStudies}개`,
-      en: `${year} ${getMonthName(month, 'en')} Service Report\n\nHours: ${totalHours.toFixed(1)}\nBible Studies: ${totalStudies}`,
-      id: `Laporan Pelayanan ${getMonthName(month, 'id')} ${year}\n\nJam: ${totalHours.toFixed(1)}\nPelajaran Alkitab: ${totalStudies}`
-    };
+    let message = '';
     
-    const message = messages[lang];
+    if (lang === 'ko') {
+      message = `${year}년 ${month}월 야외 봉사 보고\n성서 연구: ${totalStudies}\n시간: ${totalHours.toFixed(1)}\n비고: -`;
+    } else if (lang === 'en') {
+      const monthName = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'][month - 1];
+      message = `FIELD SERVICE REPORT ${monthName} ${year}\nBible studies: ${totalStudies}\nHours: ${totalHours.toFixed(1)}\nComments: -`;
+    } else if (lang === 'id') {
+      const monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][month - 1];
+      message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
+    }
     
     // 클립보드에 복사
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -269,11 +275,17 @@ async function performRestore() {
     const result = await restoreFromSheets();
     
     if (result.success) {
-      showMessage(`✅ 복원 완료!\n${result.count}개 기록을 가져왔습니다.`, 'success');
+      let message = `✅ 복원 완료!\n${result.count}개 봉사 기록`;
+      if (result.visits > 0) {
+        message += `, ${result.visits}개 재방문 기록`;
+      }
+      message += `을 가져왔습니다.`;
+      showMessage(message, 'success');
       
-      // 통계 업데이트
+      // 통계 및 재방문 목록 업데이트
       await loadMonthlyStats();
       await loadServiceYearTotal();
+      await loadReturnVisits();
     }
     
   } catch (error) {
@@ -368,14 +380,15 @@ async function renderCalendar() {
   // 해당 월의 기록 가져오기
   const records = await getMonthlyRecords(calendarYear, calendarMonth);
   
-  // 날짜별 시간 집계
+  // 날짜별 시간 및 성서 연구 집계
   const recordsByDate = {};
   records.forEach(record => {
     const date = record.date;
     if (!recordsByDate[date]) {
-      recordsByDate[date] = 0;
+      recordsByDate[date] = { hours: 0, studies: 0 };
     }
-    recordsByDate[date] += record.hours;
+    recordsByDate[date].hours += record.hours;
+    recordsByDate[date].studies += record.studies;
   });
   
   // 캘린더 그리드 생성
@@ -404,7 +417,9 @@ async function renderCalendar() {
   
   for (let day = 1; day <= lastDate; day++) {
     const dateStr = `${calendarYear}-${String(calendarMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const hours = recordsByDate[dateStr] || 0;
+    const dayData = recordsByDate[dateStr] || { hours: 0, studies: 0 };
+    const hours = dayData.hours;
+    const studies = dayData.studies;
     
     let bgColor = '#ffffff';
     let textColor = '#333';
@@ -420,9 +435,16 @@ async function renderCalendar() {
       fontWeight = '600';
     }
     
+    let infoHtml = '';
+    if (hours > 0) {
+      const hoursText = hours.toFixed(1) + 'h';
+      const studiesText = studies > 0 ? ' ' + studies + 'm' : '';
+      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}${studiesText}</div>`;
+    }
+    
     days += `<div style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center;">
       <div style="font-size: 16px; font-weight: ${fontWeight}; margin-bottom: 4px;">${day}</div>
-      ${hours > 0 ? `<div style="font-size: 11px; opacity: 0.9;">${hours.toFixed(1)}h</div>` : ''}
+      ${infoHtml}
     </div>`;
   }
   
