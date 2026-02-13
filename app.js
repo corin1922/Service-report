@@ -28,9 +28,6 @@ async function initApp() {
     // 재방문 탭 초기화
     initVisitsTab();
     
-    // 마지막 백업 시각 표시
-    updateLastBackupTime();
-
     // 초기 데이터 로드
     await loadMonthlyStats();
     await loadServiceYearTotal();
@@ -124,11 +121,11 @@ async function saveServiceRecord() {
 
 // 월별 보고서 전송
 async function sendMonthlyReport() {
-  const year = parseInt(document.getElementById('stats-year').value);
-  const month = parseInt(document.getElementById('stats-month').value);
-  const lang = document.querySelector('input[name="report-lang"]:checked').value;
-  
   try {
+    const year = parseInt(document.getElementById('stats-year').value);
+    const month = parseInt(document.getElementById('stats-month').value);
+    const lang = document.querySelector('input[name="report-lang"]:checked').value;
+    
     const records = await getMonthlyRecords(year, month);
     const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
     const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
@@ -148,32 +145,35 @@ async function sendMonthlyReport() {
       message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 클립보드에 복사
-try {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    await navigator.clipboard.writeText(message);
-    showMessage('클립보드에 복사되었습니다.', 'success');
-  } else {
-    // 폴백: 수동 복사
+    // 클립보드에 복사 (Safari 호환)
     const textArea = document.createElement('textarea');
     textArea.value = message;
     textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
     document.body.appendChild(textArea);
+    textArea.focus();
     textArea.select();
-    document.execCommand('copy');
+    
+    const successful = document.execCommand('copy');
     document.body.removeChild(textArea);
-    showMessage('클립보드에 복사되었습니다.', 'success');
-  }
-} catch (err) {
-  console.error('복사 오류:', err);
-  alert(message);
-  showMessage('보고서가 생성되었습니다.', 'success');
-}
+    
+    if (successful) {
+      showMessage('클립보드에 복사되었습니다.', 'success');
+    } else {
+      throw new Error('복사 실패');
+    }
     
   } catch (error) {
     console.error('전송 오류:', error);
-    showMessage('전송 중 오류가 발생했습니다.', 'error');
+    showMessage('전송 중 오류가 발생했습니다: ' + error.message, 'error');
   }
 }
 
@@ -263,14 +263,8 @@ async function performBackup() {
     const result = await backupToSheets();
     
     if (result.success) {
-  // 백업 시각 저장
-  const now = new Date();
-  const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  localStorage.setItem('lastBackupTime', timeStr);
-  updateLastBackupTime();
-  
-  showMessage(`✅ 백업 완료!\n${result.count}개 기록이 업로드되었습니다.`, 'success');
-}
+      showMessage(`✅ 백업 완료!\n${result.count}개 기록이 업로드되었습니다.`, 'success');
+    }
     
   } catch (error) {
     console.error('백업 오류:', error);
@@ -460,8 +454,8 @@ async function renderCalendar() {
     let infoHtml = '';
     if (hours > 0) {
       const hoursText = hours.toFixed(1) + 'h';
-      const studiesText = studies > 0 ? ' ' + studies + 's' : '';
-      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}<span style="color: #FFD700;">${studiesText}</div>`;
+      const studiesText = studies > 0 ? ' ' + studies + 'm' : '';
+      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}${studiesText}</div>`;
     }
     
     days += `<div style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -592,12 +586,3 @@ if ('serviceWorker' in navigator) {
 
 // 앱 시작
 window.addEventListener('DOMContentLoaded', initApp);
-
-// 마지막 백업 시각 업데이트
-function updateLastBackupTime() {
-  const lastTime = localStorage.getItem('lastBackupTime');
-  const element = document.getElementById('last-backup-time');
-  if (element) {
-    element.textContent = lastTime ? `마지막 백업: ${lastTime}` : '마지막 백업: -';
-  }
-}
