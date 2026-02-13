@@ -473,11 +473,11 @@ async function renderCalendar() {
     let infoHtml = '';
     if (hours > 0) {
       const hoursText = hours.toFixed(1) + 'h';
-      const studiesText = studies > 0 ? ' ' + studies + 'm' : '';
-      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}${studiesText}</div>`;
+      const studiesText = studies > 0 ? ' ' + studies + 's' : '';
+      infoHtml = `<div style="font-size: 11px; opacity: 0.9;">${hoursText}<span style="color: #FFD700;">${studiesText}</span></div>`;
     }
     
-    days += `<div style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    days += `<div onclick="editDateRecord('${dateStr}')" style="aspect-ratio: 1; padding: 8px; background: ${bgColor}; color: ${textColor}; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;">
       <div style="font-size: 16px; font-weight: ${fontWeight}; margin-bottom: 4px;">${day}</div>
       ${infoHtml}
     </div>`;
@@ -575,6 +575,87 @@ async function deleteVisit(id) {
   }
 }
 
+// 재방문 수정
+async function editVisit(id) {
+  try {
+    const transaction = db.transaction(['returnVisits'], 'readonly');
+    const store = transaction.objectStore('returnVisits');
+    const request = store.get(id);
+    
+    request.onsuccess = () => {
+      const visit = request.result;
+      if (!visit) {
+        showMessage('재방문 기록을 찾을 수 없습니다.', 'error');
+        return;
+      }
+      
+      // 입력 필드에 기존 데이터 채우기
+      document.getElementById('visit-name').value = visit.name;
+      document.getElementById('visit-memo').value = visit.memo || '';
+      document.getElementById('visit-bible-study').checked = visit.isBibleStudy || false;
+      
+      // 저장 버튼을 수정 모드로 변경
+      const saveBtn = document.getElementById('save-visit');
+      saveBtn.textContent = '수정 완료';
+      saveBtn.onclick = async () => {
+        await updateVisitData(id);
+      };
+      
+      // 재방문 기록 탭으로 이동
+      switchTab('visits');
+      
+      // 상단으로 스크롤
+      window.scrollTo(0, 0);
+    };
+    
+    request.onerror = () => {
+      showMessage('수정 중 오류가 발생했습니다.', 'error');
+    };
+  } catch (error) {
+    console.error('수정 오류:', error);
+    showMessage('수정 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 재방문 데이터 업데이트
+async function updateVisitData(id) {
+  const name = document.getElementById('visit-name').value.trim();
+  const memo = document.getElementById('visit-memo').value.trim();
+  const isBibleStudy = document.getElementById('visit-bible-study').checked;
+  
+  if (!name) {
+    showMessage('이름을 입력해주세요.', 'error');
+    return;
+  }
+  
+  try {
+    await updateReturnVisit(id, {
+      name: name,
+      memo: memo,
+      isBibleStudy: isBibleStudy
+    });
+    
+    showMessage('재방문이 수정되었습니다!', 'success');
+    
+    // 폼 리셋
+    document.getElementById('visit-name').value = '';
+    document.getElementById('visit-memo').value = '';
+    document.getElementById('visit-bible-study').checked = false;
+    
+    // 저장 버튼 원래대로
+    const saveBtn = document.getElementById('save-visit');
+    saveBtn.textContent = '재방문 저장';
+    saveBtn.onclick = saveReturnVisit;
+    
+    // 목록 업데이트
+    await loadReturnVisits();
+    
+  } catch (error) {
+    console.error('수정 오류:', error);
+    showMessage('수정 중 오류가 발생했습니다.', 'error');
+  }
+}
+
 // 메시지 표시
 function showMessage(text, type = 'success') {
   const messageDiv = document.getElementById('message');
@@ -592,6 +673,49 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// 날짜별 기록 수정
+async function editDateRecord(dateStr) {
+  try {
+    const records = await getAllServiceRecords();
+    const dateRecords = records.filter(r => r.date === dateStr);
+    
+    if (dateRecords.length === 0) {
+      // 기록이 없으면 새로 입력
+      document.getElementById('service-date').value = dateStr;
+      switchTab('home');
+      window.scrollTo(0, 0);
+      showMessage('해당 날짜에 기록이 없습니다. 새로 입력하세요.', 'success');
+      return;
+    }
+    
+    // 여러 기록이 있으면 합계 표시
+    const totalHours = dateRecords.reduce((sum, r) => sum + r.hours, 0);
+    const totalStudies = dateRecords.reduce((sum, r) => sum + r.studies, 0);
+    
+    const hours = Math.floor(totalHours);
+    const minutes = Math.round((totalHours - hours) * 60);
+    
+    const message = `${dateStr}\n\n현재 기록:\n시간: ${totalHours.toFixed(1)}시간\n성서 연구: ${totalStudies}개\n\n수정하시겠습니까?`;
+    
+    if (confirm(message)) {
+      // 홈 탭으로 이동하여 수정
+      document.getElementById('service-date').value = dateStr;
+      document.getElementById('service-hours').value = hours;
+      document.getElementById('service-minutes').value = minutes;
+      document.getElementById('service-studies').value = totalStudies;
+      
+      switchTab('home');
+      window.scrollTo(0, 0);
+      
+      showMessage('날짜와 시간이 입력되었습니다. 수정 후 저장하세요.', 'success');
+    }
+    
+  } catch (error) {
+    console.error('날짜 수정 오류:', error);
+    showMessage('오류가 발생했습니다.', 'error');
+  }
 }
 
 // Service Worker 등록
