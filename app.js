@@ -145,30 +145,49 @@ async function sendMonthlyReport() {
       message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 클립보드에 복사 (Safari 호환)
-    const textArea = document.createElement('textarea');
-    textArea.value = message;
-    textArea.style.position = 'fixed';
-    textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = '0';
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
+    // 클립보드에 복사 시도
+    let copied = false;
     
-    const successful = document.execCommand('copy');
-    document.body.removeChild(textArea);
+    // 방법 1: Clipboard API
+    try {
+      await navigator.clipboard.writeText(message);
+      copied = true;
+    } catch (e1) {
+      console.log('Clipboard API 실패:', e1);
+      
+      // 방법 2: execCommand
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = message;
+        textArea.style.position = 'absolute';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '0';
+        document.body.appendChild(textArea);
+        
+        if (navigator.userAgent.match(/ipad|iphone/i)) {
+          const range = document.createRange();
+          range.selectNodeContents(textArea);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          textArea.setSelectionRange(0, 999999);
+        } else {
+          textArea.select();
+        }
+        
+        copied = document.execCommand('copy');
+        document.body.removeChild(textArea);
+      } catch (e2) {
+        console.log('execCommand 실패:', e2);
+      }
+    }
     
-    if (successful) {
+    if (copied) {
       showMessage('클립보드에 복사되었습니다.', 'success');
     } else {
-      throw new Error('복사 실패');
+      // 폴백: prompt로 표시
+      prompt('아래 텍스트를 복사하세요 (Cmd+C):', message);
+      showMessage('텍스트를 수동으로 복사해주세요.', 'success');
     }
     
   } catch (error) {
