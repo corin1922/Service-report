@@ -28,5 +28,10 @@
     "hours": 10,
     "minutes": 0,
     "study": 0
+  },
+  "2025-12-01": {
+    "hours": 20,
+    "minutes": 0,
+    "study": 0
   }
 }
