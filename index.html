@@ -3,8 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>JW Service</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -527,7 +525,7 @@
 <!-- HEADER -->
 <div class="header">
   <div class="header-title">
-    <div class="header-icon"><img src="apple-touch-icon.png" style="width:24px;height:24px;border-radius:6px;display:block;"></div>
+    <div class="header-icon">🕊️</div>
     JW Service
   </div>
   <div class="header-user" id="headerUser">로딩 중...</div>
@@ -718,12 +716,12 @@
 // CONFIG — 토큰은 코드에 없음. localStorage에서 불러옴
 // ============================================================
 const CONFIG = {
-  owner: 'corin1922',  // ← 본인 GitHub 아이디로 변경
-  repo: 'Service-report',
+  owner: 'YOUR_GITHUB_USERNAME',  // ← 본인 GitHub 아이디로 변경
+  repo: 'jw-service',
   branch: 'main',
   users: {
-    user1: { username: 'Kim Hyeonsoo' },  // ← 실제 이름으로 변경
-    user2: { username: 'Jo Kyeongeun' }       // ← 실제 이름으로 변경
+    user1: { username: 'corin1922' },  // ← 실제 이름으로 변경
+    user2: { username: 'User2' }       // ← 실제 이름으로 변경
   }
 };
 
@@ -991,11 +989,11 @@ function sendReport() {
 
   let text = '';
   if (lang === 'ko') {
-    text = `${y}년 ${m}월 야외 봉사 보고\n\n성서 연구: ${totalStudy}\n시간: ${totalHours}\n비고: -`;
+    text = `${y}년 ${m}월 야외 봉사 보고\n\n${USERNAME}\n성서 연구: ${totalStudy}\n시간: ${totalHours}\n비고: -`;
   } else if (lang === 'en') {
-    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\n\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
+    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\n\n${USERNAME}\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
   } else {
-    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\n\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
+    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\n\n${USERNAME}\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
   }
 
   navigator.clipboard.writeText(text).then(() => {
