@@ -120,13 +120,13 @@ async function saveServiceRecord() {
 }
 
 // 월별 보고서 전송
-async function sendMonthlyReport() {
-  try {
-    const year = parseInt(document.getElementById('stats-year').value);
-    const month = parseInt(document.getElementById('stats-month').value);
-    const lang = document.querySelector('input[name="report-lang"]:checked').value;
-    
-    const records = await getMonthlyRecords(year, month);
+function sendMonthlyReport() {
+  const year = parseInt(document.getElementById('stats-year').value);
+  const month = parseInt(document.getElementById('stats-month').value);
+  const lang = document.querySelector('input[name="report-lang"]:checked').value;
+  
+  // 먼저 데이터 로드
+  getMonthlyRecords(year, month).then(records => {
     const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
     const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
     
@@ -145,55 +145,54 @@ async function sendMonthlyReport() {
       message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 클립보드에 복사
+    // 즉시 복사 시도 (동기적)
+    const textArea = document.createElement('textarea');
+    textArea.value = message;
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    document.body.appendChild(textArea);
+    
+    // iOS 특별 처리
+    if (navigator.userAgent.match(/ipad|iphone/i)) {
+      textArea.contentEditable = 'true';
+      textArea.readOnly = false;
+      const range = document.createRange();
+      range.selectNodeContents(textArea);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textArea.setSelectionRange(0, 999999);
+    } else {
+      textArea.focus();
+      textArea.select();
+    }
+    
     let copied = false;
-    
-    // 방법 1: execCommand (iOS/Safari 호환)
     try {
-      const textArea = document.createElement('textarea');
-      textArea.value = message;
-      textArea.style.position = 'absolute';
-      textArea.style.left = '-9999px';
-      textArea.style.top = '0';
-      document.body.appendChild(textArea);
-      
-      if (navigator.userAgent.match(/ipad|iphone/i)) {
-        const range = document.createRange();
-        range.selectNodeContents(textArea);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        textArea.setSelectionRange(0, 999999);
-      } else {
-        textArea.select();
-      }
-      
       copied = document.execCommand('copy');
-      document.body.removeChild(textArea);
-    } catch (e) {
-      console.log('execCommand 실패:', e);
+    } catch (err) {
+      console.error('복사 오류:', err);
     }
     
-    // 방법 2: Clipboard API 시도
-    if (!copied) {
-      try {
-        await navigator.clipboard.writeText(message);
-        copied = true;
-      } catch (e) {
-        console.log('Clipboard API 실패:', e);
-      }
-    }
+    document.body.removeChild(textArea);
     
     if (copied) {
       alert('클립보드에 복사되었습니다!');
     } else {
       alert('복사에 실패했습니다. 다시 시도해주세요.');
     }
-    
-  } catch (error) {
+  }).catch(error => {
     console.error('전송 오류:', error);
     alert('전송 중 오류가 발생했습니다.');
-  }
+  });
 }
 
 // 월 이름 가져오기
