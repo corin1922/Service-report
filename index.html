@@ -857,9 +857,9 @@ function sendReport() {
   if (lang === 'ko') {
     text = `${y}년 ${m}월 야외 봉사 보고\n\n성서 연구: ${totalStudy}\n시간: ${totalHours}\n비고: -`;
   } else if (lang === 'en') {
-    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
+    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\n\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
   } else {
-    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
+    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\n\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
   }
 
   navigator.clipboard.writeText(text).then(() => {
