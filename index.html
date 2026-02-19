@@ -435,9 +435,88 @@
     pointer-events: none;
   }
   .toast.show { opacity: 1; }
+
+  /* TOKEN SETUP SCREEN */
+  .token-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--gray-bg);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .token-screen.show { display: flex; }
+  .token-box {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 20px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    text-align: center;
+  }
+  .token-box .t-icon { font-size: 36px; margin-bottom: 10px; }
+  .token-box .t-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+  .token-box .t-desc {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .token-box input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 13px;
+    font-family: monospace;
+    margin-bottom: 12px;
+    outline: none;
+  }
+  .token-box input:focus { border-color: var(--purple); }
+  .token-box .t-note {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  .header { position: relative; }
+  .header-reset {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
 </style>
 </head>
 <body>
+
+<!-- TOKEN SETUP SCREEN -->
+<div class="token-screen" id="tokenScreen">
+  <div class="token-box">
+    <div class="t-icon">🔑</div>
+    <div class="t-title">GitHub 토큰 입력</div>
+    <div class="t-desc">데이터를 저장하려면 GitHub Personal Access Token이 필요해요.<br>한 번만 입력하면 이 기기에서는 자동으로 로그인돼요.</div>
+    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <button class="btn btn-primary" style="margin-top:0" onclick="saveToken()">저장하고 시작하기</button>
+    <div class="t-note">⚠️ 토큰은 이 기기에만 저장되며 GitHub에 업로드되지 않아요.<br>Settings → Developer settings → Personal access tokens에서 발급하세요.</div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <div class="header">
@@ -446,6 +525,7 @@
     JW Service
   </div>
   <div class="header-user" id="headerUser">로딩 중...</div>
+  <button class="header-reset" onclick="resetToken()">토큰 초기화</button>
 </div>
 
 <!-- TABS -->
@@ -629,17 +709,15 @@
 
 <script>
 // ============================================================
-// CONFIG — GitHub에 저장하는 방식
+// CONFIG — 토큰은 코드에 없음. localStorage에서 불러옴
 // ============================================================
 const CONFIG = {
-  owner: 'corin1922',
+  owner: 'YOUR_GITHUB_USERNAME',  // ← 본인 GitHub 아이디로 변경
   repo: 'jw-service',
   branch: 'main',
-  token: 'YOUR_GITHUB_TOKEN',
-  // 사용자 정보: URL ?user=user1 또는 ?user=user2 로 구분
   users: {
-    user1: { username: 'Kim Hyeonsoo' },
-    user2: { username: 'Jo Kyeongeun' }
+    user1: { username: 'Kim Hyeonsoo' },  // ← 실제 이름으로 변경
+    user2: { username: 'Jo Kyeongeun' }       // ← 실제 이름으로 변경
   }
 };
 
@@ -649,7 +727,7 @@ const CONFIG = {
 const urlParams = new URLSearchParams(window.location.search);
 const currentUser = (['user1','user2'].includes(urlParams.get('user')))
   ? urlParams.get('user')
-  : 'user1'; // 파라미터 없으면 기본값 user1
+  : 'user1';
 
 const USERNAME = CONFIG.users[currentUser].username;
 
@@ -660,6 +738,27 @@ const REVISIT_PATH = `data/${currentUser}_revisit.json`;
 // 사용자별 localStorage 키
 const RECORDS_KEY = `jw_records_${currentUser}`;
 const REVISIT_KEY = `jw_revisit_${currentUser}`;
+const TOKEN_KEY   = 'jw_github_token';
+
+// 토큰은 localStorage에서 불러옴 (코드에 없음)
+function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+function saveToken() {
+  const val = document.getElementById('tokenInput').value.trim();
+  if (!val.startsWith('ghp_') && !val.startsWith('github_pat_')) {
+    showToast('⚠️ 올바른 토큰 형식이 아니에요 (ghp_ 로 시작해야 해요)');
+    return;
+  }
+  localStorage.setItem(TOKEN_KEY, val);
+  document.getElementById('tokenScreen').classList.remove('show');
+  showToast('✅ 토큰이 저장됐어요. 데이터를 불러오는 중...');
+  initApp();
+}
+function resetToken() {
+  if (!confirm('토큰을 초기화하면 다시 입력해야 해요. 계속할까요?')) return;
+  localStorage.removeItem(TOKEN_KEY);
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('tokenScreen').classList.add('show');
+}
 
 // ============================================================
 // DATA
@@ -685,10 +784,11 @@ function saveLocal() {
 // GITHUB API
 // ============================================================
 async function githubGet(path) {
-  if (!CONFIG.token || CONFIG.token === 'YOUR_GITHUB_TOKEN') return null;
+  const token = getToken();
+  if (!token) return null;
   try {
     const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`, {
-      headers: { Authorization: `token ${CONFIG.token}`, Accept: 'application/vnd.github.v3+json' }
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
     });
     if (!r.ok) return null;
     const d = await r.json();
@@ -696,11 +796,12 @@ async function githubGet(path) {
   } catch(e) { return null; }
 }
 async function githubPut(path, content, sha) {
-  if (!CONFIG.token || CONFIG.token === 'YOUR_GITHUB_TOKEN') return;
+  const token = getToken();
+  if (!token) return;
   const body = { message: `update ${path}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))), branch: CONFIG.branch };
   if (sha) body.sha = sha;
   await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`, {
-    method: 'PUT', headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
+    method: 'PUT', headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
 }
@@ -757,15 +858,24 @@ function monthName(m, lang) {
 // ============================================================
 async function init() {
   document.getElementById('headerUser').textContent = USERNAME + '님';
+
+  // 토큰 없으면 입력 화면 표시
+  if (!getToken()) {
+    document.getElementById('tokenScreen').classList.add('show');
+    return;
+  }
+  await initApp();
+}
+
+async function initApp() {
+  document.getElementById('headerUser').textContent = USERNAME + '님';
   loadLocal();
   initSelects();
   setDefaultDate();
 
-  // Try GitHub
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') {
-    await loadFromGitHub();
-    saveLocal();
-  }
+  // GitHub에서 데이터 불러오기
+  await loadFromGitHub();
+  saveLocal();
 
   renderStats();
   renderServiceYear();
@@ -826,7 +936,7 @@ async function saveRecord() {
 
   serviceRecords[date] = { hours, minutes: mins, study: study ? parseInt(study) : 0 };
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   // reset
   document.getElementById('recordHour').value  = '0';
@@ -983,7 +1093,7 @@ async function updateRecord() {
 
   serviceRecords[editingDate] = { hours, minutes: mins, study: study ? parseInt(study) : 0 };
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   closeModal('editRecordModal');
   renderCalendar();
@@ -996,7 +1106,7 @@ async function deleteRecord() {
   if (!confirm('이 기록을 삭제하시겠습니까?')) return;
   delete serviceRecords[editingDate];
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   closeModal('editRecordModal');
   renderCalendar();
@@ -1052,7 +1162,7 @@ async function saveRevisit() {
 
   revisitData.push({ id: Date.now().toString(), name, memo, study });
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   document.getElementById('rvName').value  = '';
   document.getElementById('rvMemo').value  = '';
@@ -1085,7 +1195,7 @@ async function updateRevisit() {
     study: document.getElementById('editRvStudy').checked
   };
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   closeModal('editRevisitModal');
   renderRevisitList();
@@ -1096,7 +1206,7 @@ async function deleteRevisit() {
   if (!confirm('이 재방문 정보를 삭제하시겠습니까?')) return;
   revisitData = revisitData.filter(r => r.id !== editingRevisitId);
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
 
   closeModal('editRevisitModal');
   renderRevisitList();
@@ -1107,7 +1217,7 @@ async function confirmDeleteRevisit(id) {
   if (!confirm('이 재방문 정보를 삭제하시겠습니까?')) return;
   revisitData = revisitData.filter(r => r.id !== id);
   saveLocal();
-  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  await saveToGitHub();
   renderRevisitList();
   showToast('🗑️ 삭제되었습니다');
 }
