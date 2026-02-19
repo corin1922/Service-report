@@ -191,11 +191,15 @@
     color: white;
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 8px;
-    padding: 6px 28px 6px 10px;
+    padding: 6px 12px;
     font-size: 14px;
     font-weight: 600;
     width: auto;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='white' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none;
+    cursor: pointer;
+    text-align: center;
   }
   .stats-card select option { background: var(--purple-dark); color: white; }
   .stats-row {
@@ -716,8 +720,8 @@ const CONFIG = {
   repo: 'jw-service',
   branch: 'main',
   users: {
-    user1: { username: 'Kim Hyeonsoo' },  // ← 실제 이름으로 변경
-    user2: { username: 'Jo Kyeongeun' }       // ← 실제 이름으로 변경
+    user1: { username: 'corin1922' },  // ← 실제 이름으로 변경
+    user2: { username: 'User2' }       // ← 실제 이름으로 변경
   }
 };
 
