@@ -145,54 +145,54 @@ async function sendMonthlyReport() {
       message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 클립보드에 복사 시도
+    // 클립보드에 복사
     let copied = false;
     
-    // 방법 1: Clipboard API
+    // 방법 1: execCommand (iOS/Safari 호환)
     try {
-      await navigator.clipboard.writeText(message);
-      copied = true;
-    } catch (e1) {
-      console.log('Clipboard API 실패:', e1);
+      const textArea = document.createElement('textarea');
+      textArea.value = message;
+      textArea.style.position = 'absolute';
+      textArea.style.left = '-9999px';
+      textArea.style.top = '0';
+      document.body.appendChild(textArea);
       
-      // 방법 2: execCommand
+      if (navigator.userAgent.match(/ipad|iphone/i)) {
+        const range = document.createRange();
+        range.selectNodeContents(textArea);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        textArea.setSelectionRange(0, 999999);
+      } else {
+        textArea.select();
+      }
+      
+      copied = document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } catch (e) {
+      console.log('execCommand 실패:', e);
+    }
+    
+    // 방법 2: Clipboard API 시도
+    if (!copied) {
       try {
-        const textArea = document.createElement('textarea');
-        textArea.value = message;
-        textArea.style.position = 'absolute';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '0';
-        document.body.appendChild(textArea);
-        
-        if (navigator.userAgent.match(/ipad|iphone/i)) {
-          const range = document.createRange();
-          range.selectNodeContents(textArea);
-          const selection = window.getSelection();
-          selection.removeAllRanges();
-          selection.addRange(range);
-          textArea.setSelectionRange(0, 999999);
-        } else {
-          textArea.select();
-        }
-        
-        copied = document.execCommand('copy');
-        document.body.removeChild(textArea);
-      } catch (e2) {
-        console.log('execCommand 실패:', e2);
+        await navigator.clipboard.writeText(message);
+        copied = true;
+      } catch (e) {
+        console.log('Clipboard API 실패:', e);
       }
     }
     
     if (copied) {
-      showMessage('클립보드에 복사되었습니다.', 'success');
+      alert('클립보드에 복사되었습니다!');
     } else {
-      // 폴백: prompt로 표시
-      prompt('아래 텍스트를 복사하세요 (Cmd+C):', message);
-      showMessage('텍스트를 수동으로 복사해주세요.', 'success');
+      alert('복사에 실패했습니다. 다시 시도해주세요.');
     }
     
   } catch (error) {
     console.error('전송 오류:', error);
-    showMessage('전송 중 오류가 발생했습니다: ' + error.message, 'error');
+    alert('전송 중 오류가 발생했습니다.');
   }
 }
 
