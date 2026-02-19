@@ -22,5 +22,11 @@
     "name": "Johan",
     "memo": "",
     "study": false
+  },
+  {
+    "id": "1771507397167",
+    "name": "Ojak Sihombing",
+    "memo": "",
+    "study": true
   }
 ]
