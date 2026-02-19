@@ -125,10 +125,14 @@ function sendMonthlyReport() {
   const month = parseInt(document.getElementById('stats-month').value);
   const lang = document.querySelector('input[name="report-lang"]:checked').value;
   
-  // 먼저 데이터 로드
+  // 동기적으로 처리
+  let totalHours = 0;
+  let totalStudies = 0;
+  
+  // 비동기 데이터를 먼저 로드
   getMonthlyRecords(year, month).then(records => {
-    const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
-    const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
+    totalHours = records.reduce((sum, r) => sum + r.hours, 0);
+    totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
     
     // 언어별 메시지
     let reportText = '';
@@ -145,12 +149,44 @@ function sendMonthlyReport() {
       reportText = `LAPORAN DINAS LAPANGAN ${monthNamesId[month - 1]} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 클립보드에 복사 (기존 GAS 웹앱과 동일한 방식)
-    navigator.clipboard.writeText(reportText).then(function() {
+    // execCommand 방식으로 복사 (PWA 호환)
+    const textarea = document.createElement('textarea');
+    textarea.value = reportText;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    
+    // iOS Safari 특별 처리
+    const isIOS = /ipad|iphone/i.test(navigator.userAgent);
+    if (isIOS) {
+      const range = document.createRange();
+      range.selectNodeContents(textarea);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textarea.setSelectionRange(0, 999999);
+    } else {
+      textarea.select();
+    }
+    
+    let success = false;
+    try {
+      success = document.execCommand('copy');
+    } catch (err) {
+      console.error('복사 오류:', err);
+    }
+    
+    document.body.removeChild(textarea);
+    
+    if (success) {
       alert('클립보드에 복사되었습니다!');
-    }, function(err) {
-      alert('복사 실패: ' + err);
-    });
+    } else {
+      // 최후의 수단: alert로 텍스트 표시
+      if (confirm('자동 복사에 실패했습니다. 텍스트를 보시겠습니까?')) {
+        alert(reportText);
+      }
+    }
     
   }).catch(error => {
     console.error('전송 오류:', error);
