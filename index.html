@@ -636,17 +636,36 @@ const CONFIG = {
   repo: 'jw-service',
   branch: 'main',
   token: 'YOUR_GITHUB_TOKEN',
-  username: 'corin1922' // 표시 이름
+  // 사용자 정보: URL ?user=user1 또는 ?user=user2 로 구분
+  users: {
+    user1: { username: 'Kim Hyeonsoo' },
+    user2: { username: 'Jo Kyeongeun' }
+  }
 };
 
 // ============================================================
-// DATA (localStorage fallback for demo / offline use)
+// 현재 사용자 결정 (URL 파라미터 ?user=user1 or user2)
 // ============================================================
-let serviceRecords = {}; // { "2026-02-19": { hours: 4, minutes: 0, study: 1 } }
-let revisitData = [];     // [{ id, name, memo, study }]
+const urlParams = new URLSearchParams(window.location.search);
+const currentUser = (['user1','user2'].includes(urlParams.get('user')))
+  ? urlParams.get('user')
+  : 'user1'; // 파라미터 없으면 기본값 user1
 
-const RECORDS_KEY = 'jw_service_records';
-const REVISIT_KEY  = 'jw_service_revisit';
+const USERNAME = CONFIG.users[currentUser].username;
+
+// 사용자별 데이터 경로 (GitHub)
+const RECORDS_PATH = `data/${currentUser}_records.json`;
+const REVISIT_PATH = `data/${currentUser}_revisit.json`;
+
+// 사용자별 localStorage 키
+const RECORDS_KEY = `jw_records_${currentUser}`;
+const REVISIT_KEY = `jw_revisit_${currentUser}`;
+
+// ============================================================
+// DATA
+// ============================================================
+let serviceRecords = {};
+let revisitData = [];
 
 function loadLocal() {
   try {
@@ -663,7 +682,7 @@ function saveLocal() {
 }
 
 // ============================================================
-// GITHUB API (optional — set CONFIG values to enable)
+// GITHUB API
 // ============================================================
 async function githubGet(path) {
   if (!CONFIG.token || CONFIG.token === 'YOUR_GITHUB_TOKEN') return null;
@@ -687,18 +706,18 @@ async function githubPut(path, content, sha) {
 }
 let recordsSha = null, revisitSha = null;
 async function loadFromGitHub() {
-  const rec = await githubGet('data/records.json');
+  const rec = await githubGet(RECORDS_PATH);
   if (rec) { serviceRecords = rec.content; recordsSha = rec.sha; }
-  const rv  = await githubGet('data/revisit.json');
+  const rv  = await githubGet(REVISIT_PATH);
   if (rv)  { revisitData   = rv.content;  revisitSha  = rv.sha; }
 }
 async function saveToGitHub() {
-  const recResult = await githubGet('data/records.json');
+  const recResult = await githubGet(RECORDS_PATH);
   recordsSha = recResult ? recResult.sha : null;
-  await githubPut('data/records.json', serviceRecords, recordsSha);
-  const rvResult = await githubGet('data/revisit.json');
+  await githubPut(RECORDS_PATH, serviceRecords, recordsSha);
+  const rvResult = await githubGet(REVISIT_PATH);
   revisitSha = rvResult ? rvResult.sha : null;
-  await githubPut('data/revisit.json', revisitData, revisitSha);
+  await githubPut(REVISIT_PATH, revisitData, revisitSha);
 }
 
 // ============================================================
@@ -737,7 +756,7 @@ function monthName(m, lang) {
 // INIT
 // ============================================================
 async function init() {
-  document.getElementById('headerUser').textContent = CONFIG.username + '님';
+  document.getElementById('headerUser').textContent = USERNAME + '님';
   loadLocal();
   initSelects();
   setDefaultDate();
