@@ -8,11 +8,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --purple: #6b3fa0;
-    --purple-dark: #4a2470;
-    --purple-light: #8b5cc8;
-    --purple-bg: #7c4ab8;
-    --purple-card: #6b3fa0;
+    --purple: #7E5EA5;
+    --purple-dark: #5c3f80;
+    --purple-light: #a07cc8;
+    --purple-bg: #7E5EA5;
+    --purple-card: #7E5EA5;
     --gray-bg: #f2f2f7;
     --border: #ddd;
     --text: #1c1c1e;
@@ -32,7 +32,7 @@
   /* HEADER */
   .header {
     background: var(--purple-bg);
-    padding: 18px 16px 14px;
+    padding: 11px 16px 9px;
     text-align: center;
     position: sticky;
     top: 0;
@@ -42,26 +42,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 7px;
     color: white;
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 700;
     letter-spacing: -0.3px;
   }
   .header-icon {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     background: white;
-    border-radius: 7px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
   }
   .header-user {
     color: rgba(255,255,255,0.85);
-    font-size: 13px;
-    margin-top: 3px;
+    font-size: 12px;
+    margin-top: 2px;
   }
 
   /* TABS */
@@ -72,9 +72,9 @@
   }
   .tab {
     flex: 1;
-    padding: 13px 0;
+    padding: 9px 0;
     text-align: center;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--text-sub);
     cursor: pointer;
     border-bottom: 2px solid transparent;
@@ -88,22 +88,22 @@
   }
 
   /* TAB CONTENT */
-  .tab-content { display: none; padding: 16px; }
+  .tab-content { display: none; padding: 10px 12px; }
   .tab-content.active { display: block; }
 
   /* CARDS */
   .card {
     background: white;
     border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 12px;
+    margin-bottom: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
   .card-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--purple);
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -112,19 +112,19 @@
   /* FORM ELEMENTS */
   label {
     display: block;
-    font-size: 15px;
+    font-size: 13px;
     color: var(--text);
-    margin-bottom: 6px;
-    margin-top: 12px;
+    margin-bottom: 4px;
+    margin-top: 8px;
   }
   label:first-child { margin-top: 0; }
 
   input[type="text"], input[type="date"], select, textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: 9px 12px;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 9px;
+    font-size: 15px;
     color: var(--text);
     background: white;
     -webkit-appearance: none;
@@ -134,36 +134,36 @@
   }
   input[type="date"] {
     text-align: center;
-    font-size: 16px;
+    font-size: 15px;
   }
   select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
+    background-position: right 12px center;
+    padding-right: 32px;
     cursor: pointer;
   }
   textarea {
-    min-height: 80px;
+    min-height: 70px;
     resize: vertical;
   }
 
   .row-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 
   /* BUTTONS */
   .btn {
     width: 100%;
-    padding: 14px;
+    padding: 11px;
     border: none;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 9px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 14px;
+    margin-top: 10px;
     font-family: inherit;
   }
   .btn-primary { background: var(--purple); color: white; }
@@ -175,8 +175,8 @@
   .stats-card {
     background: var(--purple-card);
     border-radius: 12px;
-    padding: 20px 16px;
-    margin-bottom: 16px;
+    padding: 14px 12px;
+    margin-bottom: 10px;
     color: white;
     text-align: center;
   }
@@ -184,15 +184,15 @@
     display: flex;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .stats-card select {
     background: rgba(255,255,255,0.2);
     color: white;
     border: 1px solid rgba(255,255,255,0.4);
     border-radius: 8px;
-    padding: 7px 30px 7px 12px;
-    font-size: 15px;
+    padding: 6px 28px 6px 10px;
+    font-size: 14px;
     font-weight: 600;
     width: auto;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='white' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
@@ -201,30 +201,30 @@
   .stats-row {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
-  .stats-item label { color: rgba(255,255,255,0.8); font-size: 13px; margin: 0 0 4px 0; }
-  .stats-item .num { font-size: 52px; font-weight: 700; line-height: 1; }
+  .stats-item label { color: rgba(255,255,255,0.8); font-size: 12px; margin: 0 0 2px 0; }
+  .stats-item .num { font-size: 44px; font-weight: 700; line-height: 1; }
 
   /* RADIO LANG */
   .lang-row {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-bottom: 14px;
+    gap: 16px;
+    margin-bottom: 10px;
   }
   .lang-row label {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 14px;
+    gap: 5px;
+    font-size: 13px;
     color: white;
     cursor: pointer;
     margin: 0;
   }
   .lang-row input[type="radio"] {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     accent-color: var(--purple-light);
     cursor: pointer;
   }
@@ -234,8 +234,8 @@
     color: var(--purple);
     border: none;
     border-radius: 8px;
-    padding: 12px;
-    font-size: 16px;
+    padding: 10px;
+    font-size: 15px;
     font-weight: 600;
     width: 100%;
     cursor: pointer;
@@ -247,13 +247,13 @@
   .year-card {
     background: var(--purple-card);
     border-radius: 12px;
-    padding: 24px 16px;
+    padding: 18px 16px;
     text-align: center;
     color: white;
   }
-  .year-card .year-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-  .year-card .year-num { font-size: 64px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
-  .year-card .year-sub { font-size: 14px; color: rgba(255,255,255,0.8); }
+  .year-card .year-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .year-card .year-num { font-size: 52px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .year-card .year-sub { font-size: 13px; color: rgba(255,255,255,0.8); }
 
   /* CALENDAR */
   .cal-header {
@@ -827,8 +827,9 @@ async function saveRecord() {
 function renderStats() {
   const y = parseInt(document.getElementById('statsYear').value);
   const m = parseInt(document.getElementById('statsMonth').value);
-  const { totalHours, totalStudy } = getMonthTotals(y, m);
-  document.getElementById('statHours').textContent = totalHours;
+  const { totalHours, totalRemMins, totalStudy } = getMonthTotals(y, m);
+  const display = totalRemMins > 0 ? `${totalHours}h ${totalRemMins}m` : `${totalHours}`;
+  document.getElementById('statHours').textContent = display;
   document.getElementById('statStudy').textContent = totalStudy;
 }
 
@@ -841,7 +842,7 @@ function getMonthTotals(y, m) {
       totalStudy += rec.study || 0;
     }
   });
-  return { totalHours: Math.floor(totalMins / 60), totalMins, totalStudy };
+  return { totalHours: Math.floor(totalMins / 60), totalRemMins: totalMins % 60, totalMins, totalStudy };
 }
 
 // ============================================================
@@ -857,9 +858,9 @@ function sendReport() {
   if (lang === 'ko') {
     text = `${y}년 ${m}월 야외 봉사 보고\n\n성서 연구: ${totalStudy}\n시간: ${totalHours}\n비고: -`;
   } else if (lang === 'en') {
-    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\n\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
+    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
   } else {
-    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\n\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
+    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
   }
 
   navigator.clipboard.writeText(text).then(() => {
@@ -991,10 +992,11 @@ async function deleteRecord() {
 function showMonthlySummary() {
   const y = parseInt(document.getElementById('summaryYear').value);
   const m = parseInt(document.getElementById('summaryMonth').value);
-  const { totalHours, totalStudy } = getMonthTotals(y, m);
+  const { totalHours, totalRemMins, totalStudy } = getMonthTotals(y, m);
+  const display = totalRemMins > 0 ? `${totalHours}h ${totalRemMins}m` : `${totalHours}`;
 
   document.getElementById('summaryTitle').textContent = `${y}년 ${m}월 통계`;
-  document.getElementById('summaryHours').textContent = totalHours;
+  document.getElementById('summaryHours').textContent = display;
   document.getElementById('summaryStudy').textContent = totalStudy;
   document.getElementById('summaryResult').style.display = 'block';
 }
