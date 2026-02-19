@@ -131,64 +131,27 @@ function sendMonthlyReport() {
     const totalStudies = records.reduce((sum, r) => sum + r.studies, 0);
     
     // 언어별 메시지
-    let message = '';
+    let reportText = '';
     
     if (lang === 'ko') {
-      message = `${year}년 ${month}월 야외 봉사 보고\n성서 연구: ${totalStudies}\n시간: ${totalHours.toFixed(1)}\n비고: -`;
+      reportText = `${year}년 ${month}월 야외 봉사 보고\n성서 연구: ${totalStudies}\n시간: ${totalHours.toFixed(1)}\n비고: -`;
     } else if (lang === 'en') {
-      const monthName = ['January', 'February', 'March', 'April', 'May', 'June', 
-                        'July', 'August', 'September', 'October', 'November', 'December'][month - 1];
-      message = `FIELD SERVICE REPORT ${monthName} ${year}\nBible studies: ${totalStudies}\nHours: ${totalHours.toFixed(1)}\nComments: -`;
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      reportText = `FIELD SERVICE REPORT ${monthNames[month - 1]} ${year}\nBible studies: ${totalStudies}\nHours: ${totalHours.toFixed(1)}\nComments: -`;
     } else if (lang === 'id') {
-      const monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][month - 1];
-      message = `LAPORAN DINAS LAPANGAN ${monthName} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
+      const monthNamesId = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      reportText = `LAPORAN DINAS LAPANGAN ${monthNamesId[month - 1]} ${year}\nPelajaran Alkitab: ${totalStudies}\nJam: ${totalHours.toFixed(1)}\nKeterangan: -`;
     }
     
-    // 즉시 복사 시도 (동기적)
-    const textArea = document.createElement('textarea');
-    textArea.value = message;
-    textArea.style.position = 'fixed';
-    textArea.style.top = '0';
-    textArea.style.left = '0';
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = '0';
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    document.body.appendChild(textArea);
-    
-    // iOS 특별 처리
-    if (navigator.userAgent.match(/ipad|iphone/i)) {
-      textArea.contentEditable = 'true';
-      textArea.readOnly = false;
-      const range = document.createRange();
-      range.selectNodeContents(textArea);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      textArea.setSelectionRange(0, 999999);
-    } else {
-      textArea.focus();
-      textArea.select();
-    }
-    
-    let copied = false;
-    try {
-      copied = document.execCommand('copy');
-    } catch (err) {
-      console.error('복사 오류:', err);
-    }
-    
-    document.body.removeChild(textArea);
-    
-    if (copied) {
+    // 클립보드에 복사 (기존 GAS 웹앱과 동일한 방식)
+    navigator.clipboard.writeText(reportText).then(function() {
       alert('클립보드에 복사되었습니다!');
-    } else {
-      alert('복사에 실패했습니다. 다시 시도해주세요.');
-    }
+    }, function(err) {
+      alert('복사 실패: ' + err);
+    });
+    
   }).catch(error => {
     console.error('전송 오류:', error);
     alert('전송 중 오류가 발생했습니다.');
