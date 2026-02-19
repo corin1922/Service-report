@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JW Service</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #6b3fa0;
+    --purple-dark: #4a2470;
+    --purple-light: #8b5cc8;
+    --purple-bg: #7c4ab8;
+    --purple-card: #6b3fa0;
+    --gray-bg: #f2f2f7;
+    --border: #ddd;
+    --text: #1c1c1e;
+    --text-sub: #6e6e73;
+    --white: #ffffff;
+    --red: #e53935;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--purple-bg);
+    padding: 18px 16px 14px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .header-icon {
+    width: 28px;
+    height: 28px;
+    background: white;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .header-user {
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    margin-top: 3px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 13px 0;
+    text-align: center;
+    font-size: 15px;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-weight: 400;
+  }
+  .tab.active {
+    color: var(--purple);
+    border-bottom: 2px solid var(--purple);
+    font-weight: 600;
+  }
+
+  /* TAB CONTENT */
+  .tab-content { display: none; padding: 16px; }
+  .tab-content.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* FORM ELEMENTS */
+  label {
+    display: block;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  label:first-child { margin-top: 0; }
+
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    color: var(--text);
+    background: white;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    font-family: inherit;
+  }
+  input[type="date"] {
+    text-align: center;
+    font-size: 16px;
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23666' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 14px;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-primary:active { background: var(--purple-dark); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-cancel { background: #f2f2f2; color: var(--text); border: 1px solid var(--border); }
+
+  /* STATS CARD (purple) */
+  .stats-card {
+    background: var(--purple-card);
+    border-radius: 12px;
+    padding: 20px 16px;
+    margin-bottom: 16px;
+    color: white;
+    text-align: center;
+  }
+  .stats-card .month-select-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stats-card select {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 8px;
+    padding: 7px 30px 7px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    width: auto;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='white' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  }
+  .stats-card select option { background: var(--purple-dark); color: white; }
+  .stats-row {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 16px;
+  }
+  .stats-item label { color: rgba(255,255,255,0.8); font-size: 13px; margin: 0 0 4px 0; }
+  .stats-item .num { font-size: 52px; font-weight: 700; line-height: 1; }
+
+  /* RADIO LANG */
+  .lang-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 14px;
+  }
+  .lang-row label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: white;
+    cursor: pointer;
+    margin: 0;
+  }
+  .lang-row input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--purple-light);
+    cursor: pointer;
+  }
+
+  .btn-send {
+    background: white;
+    color: var(--purple);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-send:active { background: #eee; }
+
+  /* SERVICE YEAR CARD */
+  .year-card {
+    background: var(--purple-card);
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    color: white;
+  }
+  .year-card .year-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .year-card .year-num { font-size: 64px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .year-card .year-sub { font-size: 14px; color: rgba(255,255,255,0.8); }
+
+  /* CALENDAR */
+  .cal-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .cal-header select {
+    flex: 1;
+  }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-day-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 0 8px;
+    color: var(--text-sub);
+  }
+  .cal-day-label.sun { color: #e53935; }
+  .cal-day-label.sat { color: #1976d2; }
+
+  .cal-day {
+    border-radius: 8px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 2px;
+    transition: background 0.15s;
+    min-height: 44px;
+  }
+  .cal-day:active { opacity: 0.7; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.has-record {
+    background: var(--purple);
+    color: white;
+    font-weight: 700;
+  }
+  .cal-day.has-record.today { box-shadow: 0 0 0 2px white, 0 0 0 4px var(--purple); }
+  .cal-day.today:not(.has-record) { font-weight: 700; color: var(--purple); }
+  .cal-day .day-num { font-size: 13px; line-height: 1; }
+  .cal-day .day-info { font-size: 9px; line-height: 1.3; text-align: center; margin-top: 2px; }
+  .cal-day.has-record .day-info { color: rgba(255,255,255,0.9); }
+  .cal-day .day-study { color: #ffd54f; font-size: 9px; }
+
+  /* REVISIT LIST */
+  .revisit-item {
+    display: flex;
+    align-items: center;
+    padding: 13px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 8px;
+  }
+  .revisit-item:last-child { border-bottom: none; }
+  .revisit-name { flex: 1; font-size: 16px; font-weight: 500; }
+  .btn-sm {
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: white;
+    font-family: inherit;
+  }
+  .btn-sm.danger { color: var(--red); border-color: #fcc; }
+  .btn-sm.primary { color: var(--purple); border-color: #d5b8f0; }
+
+  /* MODAL */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-sub);
+    line-height: 1;
+    padding: 0;
+  }
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .modal-btns .btn {
+    flex: 1;
+    margin-top: 0;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  /* CHECKBOX */
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--purple);
+    cursor: pointer;
+  }
+
+  /* MONTHLY SUMMARY */
+  .summary-box {
+    background: #f8f4ff;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 12px;
+    text-align: center;
+  }
+  .summary-box .s-title {
+    color: var(--purple);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .summary-box .s-row {
+    display: flex;
+    justify-content: space-around;
+  }
+  .summary-box .s-item label { font-size: 12px; color: var(--text-sub); margin: 0 0 2px; }
+  .summary-box .s-item .s-num { font-size: 22px; font-weight: 700; color: var(--purple); }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-title">
+    <div class="header-icon">🕊️</div>
+    JW Service
+  </div>
+  <div class="header-user" id="headerUser">로딩 중...</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('home')">홈</div>
+  <div class="tab" onclick="switchTab('calendar')">캘린더</div>
+  <div class="tab" onclick="switchTab('revisit')">재방문 기록</div>
+</div>
+
+<!-- ===== HOME TAB ===== -->
+<div id="tab-home" class="tab-content active">
+
+  <!-- 오늘의 봉사 기록 -->
+  <div class="card">
+    <div class="card-title">📝 오늘의 봉사 기록</div>
+    <label>날짜</label>
+    <input type="date" id="recordDate">
+
+    <label>봉사 시간</label>
+    <div class="row-2">
+      <select id="recordHour">
+        <script>for(let i=0;i<=23;i++) document.write(`<option value="${i}">${i}시간</option>`);</script>
+      </select>
+      <select id="recordMin">
+        <script>for(let i=0;i<12;i++) document.write(`<option value="${i*5}">${i*5}분</option>`);</script>
+      </select>
+    </div>
+
+    <label>성서 연구</label>
+    <select id="recordStudy">
+      <option value="">선택하세요</option>
+      <script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">${i}명</option>`);</script>
+    </select>
+
+    <button class="btn btn-primary" onclick="saveRecord()">봉사 기록 저장</button>
+  </div>
+
+  <!-- 월 통계 + 전송 -->
+  <div class="stats-card">
+    <div class="month-select-row">
+      <select id="statsYear" onchange="renderStats()"></select>
+      <select id="statsMonth" onchange="renderStats()"></select>
+    </div>
+    <div class="stats-row">
+      <div class="stats-item">
+        <label>시간</label>
+        <div class="num" id="statHours">0</div>
+      </div>
+      <div class="stats-item">
+        <label>성서 연구</label>
+        <div class="num" id="statStudy">0</div>
+      </div>
+    </div>
+    <div class="lang-row">
+      <label><input type="radio" name="lang" value="ko" checked> 한국어</label>
+      <label><input type="radio" name="lang" value="en"> English</label>
+      <label><input type="radio" name="lang" value="id"> Indonesia</label>
+    </div>
+    <button class="btn-send" onclick="sendReport()">전송</button>
+  </div>
+
+  <!-- 봉사 연도 -->
+  <div class="year-card">
+    <div class="year-title" id="serviceYearTitle">2026 봉사 연도</div>
+    <div class="year-num" id="serviceYearHours">0</div>
+    <div class="year-sub">총 봉사 시간</div>
+  </div>
+</div>
+
+<!-- ===== CALENDAR TAB ===== -->
+<div id="tab-calendar" class="tab-content">
+
+  <div class="card">
+    <div class="card-title">📅 달력</div>
+    <div class="cal-header">
+      <select id="calYear" onchange="renderCalendar()"></select>
+      <select id="calMonth" onchange="renderCalendar()"></select>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 월별 기록 조회</div>
+    <label>년도</label>
+    <select id="summaryYear"></select>
+    <label>월</label>
+    <select id="summaryMonth"></select>
+    <button class="btn btn-primary" onclick="showMonthlySummary()">월별 요약 보기</button>
+    <div id="summaryResult" style="display:none" class="summary-box">
+      <div class="s-title" id="summaryTitle"></div>
+      <div class="s-row">
+        <div class="s-item">
+          <label>총 봉사 시간</label>
+          <div class="s-num" id="summaryHours">0</div>
+        </div>
+        <div class="s-item">
+          <label>총 성서 연구</label>
+          <div class="s-num" id="summaryStudy">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REVISIT TAB ===== -->
+<div id="tab-revisit" class="tab-content">
+
+  <div class="card">
+    <div class="card-title">+ 재방문 정보 입력</div>
+    <label>이름</label>
+    <input type="text" id="rvName" placeholder="이름을 입력하세요">
+    <label>메모</label>
+    <textarea id="rvMemo" placeholder="메모를 입력하세요"></textarea>
+    <label class="checkbox-row" style="margin-top:12px">
+      <input type="checkbox" id="rvStudy"> 성서 연구
+    </label>
+    <button class="btn btn-primary" onclick="saveRevisit()">재방문 정보 저장</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 재방문 목록</div>
+    <div id="revisitList"></div>
+  </div>
+</div>
+
+<!-- EDIT RECORD MODAL -->
+<div class="modal-backdrop" id="editRecordModal">
+  <div class="modal">
+    <div class="modal-title">
+      봉사 기록 수정
+      <button class="modal-close" onclick="closeModal('editRecordModal')">×</button>
+    </div>
+    <label>날짜</label>
+    <input type="date" id="editDate" readonly style="background:#f5f5f5;color:#999">
+    <label>봉사 시간</label>
+    <div class="row-2">
+      <select id="editHour">
+        <script>for(let i=0;i<=23;i++) document.write(`<option value="${i}">${i}시간</option>`);</script>
+      </select>
+      <select id="editMin">
+        <script>for(let i=0;i<12;i++) document.write(`<option value="${i*5}">${i*5}분</option>`);</script>
+      </select>
+    </div>
+    <label>성서 연구</label>
+    <select id="editStudy">
+      <option value="">선택하세요</option>
+      <script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">${i}명</option>`);</script>
+    </select>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal('editRecordModal')">취소</button>
+      <button class="btn btn-primary" onclick="updateRecord()">저장</button>
+      <button class="btn btn-danger" onclick="deleteRecord()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT REVISIT MODAL -->
+<div class="modal-backdrop" id="editRevisitModal">
+  <div class="modal">
+    <div class="modal-title">
+      재방문 정보 수정
+      <button class="modal-close" onclick="closeModal('editRevisitModal')">×</button>
+    </div>
+    <label>이름</label>
+    <input type="text" id="editRvName">
+    <label>메모</label>
+    <textarea id="editRvMemo"></textarea>
+    <label class="checkbox-row" style="margin-top:12px">
+      <input type="checkbox" id="editRvStudy"> 성서 연구
+    </label>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="closeModal('editRevisitModal')">취소</button>
+      <button class="btn btn-primary" onclick="updateRevisit()">저장</button>
+      <button class="btn btn-danger" onclick="deleteRevisit()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG — GitHub에 저장하는 방식
+// ============================================================
+const CONFIG = {
+  owner: 'YOUR_GITHUB_USERNAME',
+  repo: 'jw-service',
+  branch: 'main',
+  token: 'YOUR_GITHUB_TOKEN',
+  username: 'corin1922' // 표시 이름
+};
+
+// ============================================================
+// DATA (localStorage fallback for demo / offline use)
+// ============================================================
+let serviceRecords = {}; // { "2026-02-19": { hours: 4, minutes: 0, study: 1 } }
+let revisitData = [];     // [{ id, name, memo, study }]
+
+const RECORDS_KEY = 'jw_service_records';
+const REVISIT_KEY  = 'jw_service_revisit';
+
+function loadLocal() {
+  try {
+    serviceRecords = JSON.parse(localStorage.getItem(RECORDS_KEY) || '{}');
+    revisitData    = JSON.parse(localStorage.getItem(REVISIT_KEY)  || '[]');
+  } catch(e) {
+    serviceRecords = {};
+    revisitData = [];
+  }
+}
+function saveLocal() {
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(serviceRecords));
+  localStorage.setItem(REVISIT_KEY,  JSON.stringify(revisitData));
+}
+
+// ============================================================
+// GITHUB API (optional — set CONFIG values to enable)
+// ============================================================
+async function githubGet(path) {
+  if (!CONFIG.token || CONFIG.token === 'YOUR_GITHUB_TOKEN') return null;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`, {
+      headers: { Authorization: `token ${CONFIG.token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return { content: JSON.parse(atob(d.content)), sha: d.sha };
+  } catch(e) { return null; }
+}
+async function githubPut(path, content, sha) {
+  if (!CONFIG.token || CONFIG.token === 'YOUR_GITHUB_TOKEN') return;
+  const body = { message: `update ${path}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2)))), branch: CONFIG.branch };
+  if (sha) body.sha = sha;
+  await fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`, {
+    method: 'PUT', headers: { Authorization: `token ${CONFIG.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+let recordsSha = null, revisitSha = null;
+async function loadFromGitHub() {
+  const rec = await githubGet('data/records.json');
+  if (rec) { serviceRecords = rec.content; recordsSha = rec.sha; }
+  const rv  = await githubGet('data/revisit.json');
+  if (rv)  { revisitData   = rv.content;  revisitSha  = rv.sha; }
+}
+async function saveToGitHub() {
+  const recResult = await githubGet('data/records.json');
+  recordsSha = recResult ? recResult.sha : null;
+  await githubPut('data/records.json', serviceRecords, recordsSha);
+  const rvResult = await githubGet('data/revisit.json');
+  revisitSha = rvResult ? rvResult.sha : null;
+  await githubPut('data/revisit.json', revisitData, revisitSha);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function getServiceYear(date) {
+  const d = date || new Date();
+  const m = d.getMonth() + 1; // 1-based
+  const y = d.getFullYear();
+  return m >= 9 ? y + 1 : y;
+}
+
+function monthName(m, lang) {
+  const ko = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const en = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const id = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  if (lang === 'en') return en[m-1];
+  if (lang === 'id') return id[m-1];
+  return ko[m-1];
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  document.getElementById('headerUser').textContent = CONFIG.username + '님';
+  loadLocal();
+  initSelects();
+  setDefaultDate();
+
+  // Try GitHub
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') {
+    await loadFromGitHub();
+    saveLocal();
+  }
+
+  renderStats();
+  renderServiceYear();
+  renderCalendar();
+  renderRevisitList();
+}
+
+function initSelects() {
+  const now = new Date();
+  const cy = now.getFullYear();
+  const cm = now.getMonth() + 1;
+
+  // statsYear, calYear, summaryYear
+  ['statsYear','calYear','summaryYear'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    for (let y = cy - 3; y <= cy + 1; y++) {
+      sel.innerHTML += `<option value="${y}" ${y===cy?'selected':''}>${y}년</option>`;
+    }
+  });
+
+  // statsMonth, calMonth, summaryMonth
+  ['statsMonth','calMonth','summaryMonth'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    for (let m = 1; m <= 12; m++) {
+      sel.innerHTML += `<option value="${m}" ${m===cm?'selected':''}>${m}월</option>`;
+    }
+  });
+}
+
+function setDefaultDate() {
+  document.getElementById('recordDate').value = today();
+}
+
+// ============================================================
+// TAB SWITCH
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['home','calendar','revisit'][i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ============================================================
+// HOME — SAVE RECORD
+// ============================================================
+async function saveRecord() {
+  const date  = document.getElementById('recordDate').value;
+  const hours = parseInt(document.getElementById('recordHour').value);
+  const mins  = parseInt(document.getElementById('recordMin').value);
+  const study = document.getElementById('recordStudy').value;
+
+  if (!date) { showToast('날짜를 선택해주세요'); return; }
+  if (hours === 0 && mins === 0) { showToast('봉사 시간을 입력해주세요'); return; }
+
+  serviceRecords[date] = { hours, minutes: mins, study: study ? parseInt(study) : 0 };
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  // reset
+  document.getElementById('recordHour').value  = '0';
+  document.getElementById('recordMin').value   = '0';
+  document.getElementById('recordStudy').value = '';
+  document.getElementById('recordDate').value  = today();
+
+  renderStats();
+  renderServiceYear();
+  renderCalendar();
+  showToast('✅ 봉사 기록이 저장되었습니다');
+}
+
+// ============================================================
+// HOME — STATS
+// ============================================================
+function renderStats() {
+  const y = parseInt(document.getElementById('statsYear').value);
+  const m = parseInt(document.getElementById('statsMonth').value);
+  const { totalHours, totalStudy } = getMonthTotals(y, m);
+  document.getElementById('statHours').textContent = totalHours;
+  document.getElementById('statStudy').textContent = totalStudy;
+}
+
+function getMonthTotals(y, m) {
+  let totalMins = 0, totalStudy = 0;
+  Object.entries(serviceRecords).forEach(([date, rec]) => {
+    const d = new Date(date);
+    if (d.getFullYear() === y && d.getMonth() + 1 === m) {
+      totalMins  += (rec.hours || 0) * 60 + (rec.minutes || 0);
+      totalStudy += rec.study || 0;
+    }
+  });
+  return { totalHours: Math.floor(totalMins / 60), totalMins, totalStudy };
+}
+
+// ============================================================
+// HOME — SEND REPORT
+// ============================================================
+function sendReport() {
+  const y = parseInt(document.getElementById('statsYear').value);
+  const m = parseInt(document.getElementById('statsMonth').value);
+  const lang = document.querySelector('input[name="lang"]:checked').value;
+  const { totalHours, totalStudy } = getMonthTotals(y, m);
+
+  let text = '';
+  if (lang === 'ko') {
+    text = `${y}년 ${m}월 야외 봉사 보고\n\n성서 연구: ${totalStudy}\n시간: ${totalHours}\n비고: -`;
+  } else if (lang === 'en') {
+    text = `FIELD SERVICE REPORT ${monthName(m,'en')} ${y}\nBible studies: ${totalStudy}\nHours: ${totalHours}\nComments: -`;
+  } else {
+    text = `LAPORAN DINAS LAPANGAN ${monthName(m,'id')} ${y}\nPelajaran Alkitab: ${totalStudy}\nJam: ${totalHours}\nKeterangan: -`;
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('📋 클립보드에 복사되었습니다');
+  }).catch(() => {
+    showToast('복사 실패 — 브라우저 권한을 확인하세요');
+  });
+}
+
+// ============================================================
+// HOME — SERVICE YEAR
+// ============================================================
+function renderServiceYear() {
+  const now = new Date();
+  const sy = getServiceYear(now);
+  const startYear = sy - 1;
+  const start = new Date(startYear, 8, 1); // Sep 1
+  const end   = new Date(sy, 7, 31);       // Aug 31
+
+  let totalMins = 0;
+  Object.entries(serviceRecords).forEach(([date, rec]) => {
+    const d = new Date(date);
+    if (d >= start && d <= end) {
+      totalMins += (rec.hours || 0) * 60 + (rec.minutes || 0);
+    }
+  });
+
+  document.getElementById('serviceYearTitle').textContent = `${sy} 봉사 연도`;
+  document.getElementById('serviceYearHours').textContent = Math.floor(totalMins / 60);
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function renderCalendar() {
+  const y = parseInt(document.getElementById('calYear').value);
+  const m = parseInt(document.getElementById('calMonth').value);
+  const grid = document.getElementById('calGrid');
+
+  const todayStr = today();
+  const firstDay = new Date(y, m - 1, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  let html = '';
+  // Day labels
+  ['일','월','화','수','목','금','토'].forEach((d,i) => {
+    const cls = i===0?'sun':i===6?'sat':'';
+    html += `<div class="cal-day-label ${cls}">${d}</div>`;
+  });
+
+  // Empty cells
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const rec = serviceRecords[dateStr];
+    const isToday = dateStr === todayStr;
+    const hasRec = !!rec;
+
+    let infoHtml = '';
+    if (rec) {
+      const hStr = `${rec.hours}h ${rec.minutes}m`;
+      infoHtml = `<div class="day-info">${hStr}`;
+      if (rec.study > 0) infoHtml += `<br><span class="day-study">${rec.study}s</span>`;
+      infoHtml += `</div>`;
+    }
+
+    html += `<div class="cal-day ${hasRec?'has-record':''} ${isToday?'today':''}" 
+              onclick="openEditRecord('${dateStr}')">
+              <div class="day-num">${d}</div>
+              ${infoHtml}
+             </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// ============================================================
+// CALENDAR — EDIT RECORD MODAL
+// ============================================================
+let editingDate = null;
+
+function openEditRecord(dateStr) {
+  editingDate = dateStr;
+  const rec = serviceRecords[dateStr] || { hours: 0, minutes: 0, study: 0 };
+
+  document.getElementById('editDate').value  = dateStr;
+  document.getElementById('editHour').value  = rec.hours || 0;
+  document.getElementById('editMin').value   = rec.minutes || 0;
+  document.getElementById('editStudy').value = rec.study   || '';
+
+  openModal('editRecordModal');
+}
+
+async function updateRecord() {
+  const hours = parseInt(document.getElementById('editHour').value);
+  const mins  = parseInt(document.getElementById('editMin').value);
+  const study = document.getElementById('editStudy').value;
+
+  serviceRecords[editingDate] = { hours, minutes: mins, study: study ? parseInt(study) : 0 };
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  closeModal('editRecordModal');
+  renderCalendar();
+  renderStats();
+  renderServiceYear();
+  showToast('✅ 수정되었습니다');
+}
+
+async function deleteRecord() {
+  if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+  delete serviceRecords[editingDate];
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  closeModal('editRecordModal');
+  renderCalendar();
+  renderStats();
+  renderServiceYear();
+  showToast('🗑️ 삭제되었습니다');
+}
+
+// ============================================================
+// CALENDAR — MONTHLY SUMMARY
+// ============================================================
+function showMonthlySummary() {
+  const y = parseInt(document.getElementById('summaryYear').value);
+  const m = parseInt(document.getElementById('summaryMonth').value);
+  const { totalHours, totalStudy } = getMonthTotals(y, m);
+
+  document.getElementById('summaryTitle').textContent = `${y}년 ${m}월 통계`;
+  document.getElementById('summaryHours').textContent = totalHours;
+  document.getElementById('summaryStudy').textContent = totalStudy;
+  document.getElementById('summaryResult').style.display = 'block';
+}
+
+// ============================================================
+// REVISIT
+// ============================================================
+function renderRevisitList() {
+  const list = document.getElementById('revisitList');
+  if (!revisitData.length) {
+    list.innerHTML = '<div style="color:#999;font-size:14px;text-align:center;padding:20px 0">재방문 기록이 없습니다</div>';
+    return;
+  }
+
+  // Sort: alphabet (English/Korean mixed)
+  const sorted = [...revisitData].sort((a, b) => a.name.localeCompare(b.name, ['ko','en']));
+
+  list.innerHTML = sorted.map(rv => {
+    const icon = rv.study ? '📖 ' : '';
+    return `<div class="revisit-item">
+      <div class="revisit-name">${icon}${rv.name}</div>
+      <button class="btn-sm primary" onclick="openEditRevisit('${rv.id}')">수정</button>
+      <button class="btn-sm danger" onclick="confirmDeleteRevisit('${rv.id}')">삭제</button>
+    </div>`;
+  }).join('');
+}
+
+async function saveRevisit() {
+  const name  = document.getElementById('rvName').value.trim();
+  const memo  = document.getElementById('rvMemo').value.trim();
+  const study = document.getElementById('rvStudy').checked;
+
+  if (!name) { showToast('이름을 입력해주세요'); return; }
+
+  revisitData.push({ id: Date.now().toString(), name, memo, study });
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  document.getElementById('rvName').value  = '';
+  document.getElementById('rvMemo').value  = '';
+  document.getElementById('rvStudy').checked = false;
+
+  renderRevisitList();
+  showToast('✅ 재방문 정보가 저장되었습니다');
+}
+
+let editingRevisitId = null;
+
+function openEditRevisit(id) {
+  const rv = revisitData.find(r => r.id === id);
+  if (!rv) return;
+  editingRevisitId = id;
+  document.getElementById('editRvName').value     = rv.name;
+  document.getElementById('editRvMemo').value     = rv.memo || '';
+  document.getElementById('editRvStudy').checked  = rv.study || false;
+  openModal('editRevisitModal');
+}
+
+async function updateRevisit() {
+  const idx = revisitData.findIndex(r => r.id === editingRevisitId);
+  if (idx === -1) return;
+
+  revisitData[idx] = {
+    ...revisitData[idx],
+    name:  document.getElementById('editRvName').value.trim(),
+    memo:  document.getElementById('editRvMemo').value.trim(),
+    study: document.getElementById('editRvStudy').checked
+  };
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  closeModal('editRevisitModal');
+  renderRevisitList();
+  showToast('✅ 수정되었습니다');
+}
+
+async function deleteRevisit() {
+  if (!confirm('이 재방문 정보를 삭제하시겠습니까?')) return;
+  revisitData = revisitData.filter(r => r.id !== editingRevisitId);
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+
+  closeModal('editRevisitModal');
+  renderRevisitList();
+  showToast('🗑️ 삭제되었습니다');
+}
+
+async function confirmDeleteRevisit(id) {
+  if (!confirm('이 재방문 정보를 삭제하시겠습니까?')) return;
+  revisitData = revisitData.filter(r => r.id !== id);
+  saveLocal();
+  if (CONFIG.token !== 'YOUR_GITHUB_TOKEN') await saveToGitHub();
+  renderRevisitList();
+  showToast('🗑️ 삭제되었습니다');
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.remove('open'); });
+});
+
+// ============================================================
+// START
+// ============================================================
+init();
+</script>
+</body>
+</html>
