@@ -572,8 +572,10 @@
   <!-- 월 통계 + 전송 -->
   <div class="stats-card">
     <div class="month-select-row">
+      <button onclick="changeStatsMonth(-1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">‹</button>
       <select id="statsYear" onchange="renderStats()"></select>
       <select id="statsMonth" onchange="renderStats()"></select>
+      <button onclick="changeStatsMonth(1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">›</button>
     </div>
     <div class="stats-row">
       <div class="stats-item">
