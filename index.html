@@ -1153,7 +1153,7 @@ function renderRevisitList() {
     const icon = rv.study ? '📖 ' : '';
     return `<div class="revisit-item">
       <div class="revisit-name">${icon}${rv.name}</div>
-      <button class="btn-sm primary" onclick="openEditRevisit('${rv.id}')">수정</button>
+      <button class="btn-sm primary" onclick="openEditRevisit('${rv.id}')">메모</button>
       <button class="btn-sm danger" onclick="confirmDeleteRevisit('${rv.id}')">삭제</button>
     </div>`;
   }).join('');
