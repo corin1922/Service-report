@@ -979,7 +979,7 @@ async function saveRecord() {
   renderStats();
   renderServiceYear();
   renderCalendar();
-  showToast('✅ 봉사 기록이 저장되었습니다');
+  showToast('봉사 기록이 저장되었습니다');
 }
 
 // ============================================================
@@ -1025,7 +1025,7 @@ function sendReport() {
   }
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast('📋 클립보드에 복사되었습니다');
+    showToast('클립보드에 복사되었습니다');
   }).catch(() => {
     showToast('복사 실패 — 브라우저 권한을 확인하세요');
   });
@@ -1130,7 +1130,7 @@ async function updateRecord() {
   renderCalendar();
   renderStats();
   renderServiceYear();
-  showToast('✅ 수정되었습니다');
+  showToast('수정되었습니다');
 }
 
 async function deleteRecord() {
@@ -1143,7 +1143,7 @@ async function deleteRecord() {
   renderCalendar();
   renderStats();
   renderServiceYear();
-  showToast('🗑️ 삭제되었습니다');
+  showToast('삭제되었습니다');
 }
 
 // ============================================================
@@ -1230,7 +1230,7 @@ async function updateRevisit() {
 
   closeModal('editRevisitModal');
   renderRevisitList();
-  showToast('✅ 수정되었습니다');
+  showToast('수정되었습니다');
 }
 
 async function deleteRevisit() {
