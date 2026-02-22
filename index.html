@@ -597,7 +597,11 @@
 
   <!-- 봉사 연도 -->
   <div class="year-card">
-    <div class="year-title" id="serviceYearTitle">2026 봉사 연도</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+      <button onclick="changeServiceYear(-1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">‹</button>
+      <div class="year-title" id="serviceYearTitle">2026 봉사 연도</div>
+      <button onclick="changeServiceYear(1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">›</button>
+    </div>
     <div class="year-num" id="serviceYearHours">0</div>
     <div class="year-sub">총 봉사 시간</div>
   </div>
@@ -902,7 +906,12 @@ function changeStatsMonth(dir) {
   mSel.value = m;
   renderStats();
 }
+let currentServiceYear = getServiceYear(new Date());
 
+function changeServiceYear(dir) {
+  currentServiceYear += dir;
+  renderServiceYear();
+}
 function initSelects() {
   const now = new Date();
   const cy = now.getFullYear();
@@ -1023,8 +1032,7 @@ function sendReport() {
 // HOME — SERVICE YEAR
 // ============================================================
 function renderServiceYear() {
-  const now = new Date();
-  const sy = getServiceYear(now);
+  const sy = currentServiceYear;
   const startYear = sy - 1;
   const start = new Date(startYear, 8, 1); // Sep 1
   const end   = new Date(sy, 7, 31);       // Aug 31
