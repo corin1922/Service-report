@@ -884,19 +884,23 @@ async function initApp() {
   // GitHub에서 데이터 불러오기
   await loadFromGitHub();
   saveLocal();
-  function changeStatsMonth(dir) {
-    const ySel = document.getElementById('statsYear');
-    const mSel = document.getElementById('statsMonth');
-    let y = parseInt(ySel.value);
-    let m = parseInt(mSel.value) + dir;
-    if (m < 1) { m = 12; y--; }
-    if (m > 12) { m = 1; y++; }
-    ySel.value = y;
-    mSel.value = m;
+
   renderStats();
   renderServiceYear();
   renderCalendar();
   renderRevisitList();
+}
+ 
+function changeStatsMonth(dir) {
+  const ySel = document.getElementById('statsYear');
+  const mSel = document.getElementById('statsMonth');
+  let y = parseInt(ySel.value);
+  let m = parseInt(mSel.value) + dir;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  ySel.value = y;
+  mSel.value = m;
+  renderStats();
 }
 
 function initSelects() {
