@@ -760,7 +760,7 @@ function saveToken() {
   initApp();
 }
 function resetToken() {
-  if (!confirm('토큰을 초기화하면 다시 입력해야 해요. 계속할까요?')) return;
+  if (!confirm('로그아웃을 하면 토큰을 다시 입력해야 합니다. 계속할까요?')) return;
   localStorage.removeItem(TOKEN_KEY);
   document.getElementById('tokenInput').value = '';
   document.getElementById('tokenScreen').classList.add('show');
