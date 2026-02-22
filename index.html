@@ -1200,7 +1200,7 @@ async function saveRevisit() {
   document.getElementById('rvStudy').checked = false;
 
   renderRevisitList();
-  showToast('✅ 재방문 정보가 저장되었습니다');
+  showToast('재방문 정보가 저장되었습니다');
 }
 
 let editingRevisitId = null;
@@ -1241,7 +1241,7 @@ async function deleteRevisit() {
 
   closeModal('editRevisitModal');
   renderRevisitList();
-  showToast('🗑️ 삭제되었습니다');
+  showToast('삭제되었습니다');
 }
 
 async function confirmDeleteRevisit(id) {
@@ -1250,7 +1250,7 @@ async function confirmDeleteRevisit(id) {
   saveLocal();
   await saveToGitHub();
   renderRevisitList();
-  showToast('🗑️ 삭제되었습니다');
+  showToast('삭제되었습니다');
 }
 
 // Close modals on backdrop click
