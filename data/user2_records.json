@@ -113,5 +113,10 @@
     "hours": 1,
     "minutes": 0,
     "study": 0
+  },
+  "2026-03-01": {
+    "hours": 0,
+    "minutes": 30,
+    "study": 0
   }
 }
