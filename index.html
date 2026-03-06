@@ -444,7 +444,15 @@
     pointer-events: none;
   }
   .toast.show { opacity: 1; }
-
+  .month-table { width: 100%; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 4px; }
+  .month-row { display: flex; align-items: center; padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px; }
+  .month-row:last-child { border-bottom: none; }
+  .month-label { flex: 1; text-align: left; color: rgba(255,255,255,0.85); }
+  .month-val { width: 60px; text-align: center; font-weight: 600; color: white; }
+  .month-val.zero { color: rgba(255,255,255,0.35); }
+  .col-header { display: flex; padding: 0 4px 8px; font-size: 11px; color: rgba(255,255,255,0.6); }
+  .col-header .flex1 { flex: 1; }
+  .col-header .w60 { width: 60px; text-align: center; }
   /* TOKEN SETUP SCREEN */
   .token-screen {
     display: none;
@@ -607,6 +615,8 @@
     </div>
     <div class="year-num" id="serviceYearHours">0</div>
     <div class="year-sub">총 봉사 시간</div>
+
+    <div class="month-table" id="yearMonthTable"></div>
   </div>
 </div>
 
@@ -1037,8 +1047,8 @@ function sendReport() {
 function renderServiceYear() {
   const sy = currentServiceYear;
   const startYear = sy - 1;
-  const start = new Date(startYear, 8, 1); // Sep 1
-  const end   = new Date(sy, 7, 31);       // Aug 31
+  const start = new Date(startYear, 8, 1);
+  const end = new Date(sy, 7, 31);
 
   let totalMins = 0;
   Object.entries(serviceRecords).forEach(([date, rec]) => {
@@ -1050,6 +1060,29 @@ function renderServiceYear() {
 
   document.getElementById('serviceYearTitle').textContent = `${sy} 봉사 연도`;
   document.getElementById('serviceYearHours').textContent = Math.floor(totalMins / 60);
+
+  // 월별 테이블
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    const y = i < 4 ? startYear : sy;
+    const m = i < 4 ? 9 + i : i - 3;
+    months.push({ y, m });
+  }
+
+  let html = `<div class="col-header"><div class="flex1"></div><div class="w60">시간</div><div class="w60">성서연구</div></div>`;
+  months.forEach(({ y, m }) => {
+    const { totalHours, totalRemMins, totalStudy } = getMonthTotals(y, m);
+    const timeStr = totalRemMins > 0 ? `${totalHours}h ${totalRemMins}m` : `${totalHours}`;
+    const zeroH = totalHours === 0 && totalRemMins === 0 ? 'zero' : '';
+    const zeroS = totalStudy === 0 ? 'zero' : '';
+    html += `<div class="month-row">
+      <div class="month-label">${y}년 ${m}월</div>
+      <div class="month-val ${zeroH}">${timeStr}</div>
+      <div class="month-val ${zeroS}">${totalStudy}</div>
+    </div>`;
+  });
+
+  document.getElementById('yearMonthTable').innerHTML = html;
 }
 
 // ============================================================
