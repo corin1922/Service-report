@@ -700,10 +700,22 @@
     </div>
     <div class="year-num" id="serviceYearHours">0</div>
         <div class="year-sub">총 봉사 시간</div>
-        <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 16px;display:inline-block;margin-top:10px;">
-          <span style="font-size:12px;color:rgba(255,255,255,0.8);">남은 시간 </span>
-          <span style="font-size:18px;font-weight:700;" id="yearRemainHours">-</span>
-          <span style="font-size:12px;color:rgba(255,255,255,0.8);"> 시간</span>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+          <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;flex:1;text-align:center;">
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-bottom:4px;">남은 시간</div>
+            <div style="font-size:18px;font-weight:700;line-height:1;" id="yearRemainHours">-</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-top:2px;">시간</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;flex:1;text-align:center;">
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-bottom:4px;">남은 월수</div>
+            <div style="font-size:18px;font-weight:700;line-height:1;" id="yearRemainMonths">-</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-top:2px;">개월</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;flex:1;text-align:center;">
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-bottom:4px;">월 평균 필요</div>
+            <div style="font-size:18px;font-weight:700;line-height:1;" id="yearAvgHours">-</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.8);margin-top:2px;">시간</div>
+          </div>
         </div>
     <div class="month-table" id="yearMonthTable"></div>
   </div>
@@ -1150,6 +1162,22 @@ function renderServiceYear() {
   const yearlyGoal = monthlyGoal * 12;
   const remain = monthlyGoal > 0 ? Math.max(yearlyGoal - yearTotalHours, 0) : '-';
   document.getElementById('yearRemainHours').textContent = remain;
+
+  // 남은 월수 계산 (봉사 연도 기준)
+  const now = new Date();
+  const endMonth = new Date(sy, 7, 31); // 봉사 연도 마지막 달 (8월)
+  let remainMonths = 0;
+  if (now <= endMonth) {
+    remainMonths = (sy - now.getFullYear()) * 12 + (8 - (now.getMonth() + 1));
+    if (remainMonths < 0) remainMonths = 0;
+  }
+  document.getElementById('yearRemainMonths').textContent = monthlyGoal > 0 ? remainMonths : '-';
+
+  // 월 평균 필요 시간
+  const avg = (monthlyGoal > 0 && remainMonths > 0)
+    ? (remain / remainMonths).toFixed(1)
+    : '-';
+  document.getElementById('yearAvgHours').textContent = avg;
  
   // 월별 테이블
   const months = [];
