@@ -1146,10 +1146,11 @@ function renderServiceYear() {
   document.getElementById('serviceYearHours').textContent = yearTotalHours;
 
   // 남은 시간 (목표 시간 기준)
-  const goal = parseInt(localStorage.getItem('jw_goal_' + currentUser)) || 0;
-  const remain = goal > 0 ? Math.max(goal - yearTotalHours, 0) : '-';
+  const monthlyGoal = parseInt(localStorage.getItem('jw_goal_' + currentUser)) || 0;
+  const yearlyGoal = monthlyGoal * 12;
+  const remain = monthlyGoal > 0 ? Math.max(yearlyGoal - yearTotalHours, 0) : '-';
   document.getElementById('yearRemainHours').textContent = remain;
-
+ 
   // 월별 테이블
   const months = [];
   for (let i = 0; i < 12; i++) {
