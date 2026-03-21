@@ -672,7 +672,7 @@
         <div class="gunit">시간</div>
       </div>
       <div class="goal-item">
-        <div class="glabel">월말까지</div>
+        <div class="glabel">남은 날짜</div>
         <div class="gnum" id="goalDays">-</div>
         <div class="gunit">일</div>
       </div>
@@ -699,8 +699,12 @@
       <button onclick="changeServiceYear(1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">›</button>
     </div>
     <div class="year-num" id="serviceYearHours">0</div>
-    <div class="year-sub">총 봉사 시간</div>
-
+        <div class="year-sub">총 봉사 시간</div>
+        <div style="background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 16px;display:inline-block;margin-top:10px;">
+          <span style="font-size:12px;color:rgba(255,255,255,0.8);">남은 시간 </span>
+          <span style="font-size:18px;font-weight:700;" id="yearRemainHours">-</span>
+          <span style="font-size:12px;color:rgba(255,255,255,0.8);"> 시간</span>
+        </div>
     <div class="month-table" id="yearMonthTable"></div>
   </div>
 </div>
@@ -1138,7 +1142,13 @@ function renderServiceYear() {
   });
 
   document.getElementById('serviceYearTitle').textContent = `${sy} 봉사 연도`;
-  document.getElementById('serviceYearHours').textContent = Math.floor(totalMins / 60);
+  const yearTotalHours = Math.floor(totalMins / 60);
+  document.getElementById('serviceYearHours').textContent = yearTotalHours;
+
+  // 남은 시간 (목표 시간 기준)
+  const goal = parseInt(localStorage.getItem('jw_goal_' + currentUser)) || 0;
+  const remain = goal > 0 ? Math.max(goal - yearTotalHours, 0) : '-';
+  document.getElementById('yearRemainHours').textContent = remain;
 
   // 월별 테이블
   const months = [];
