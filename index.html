@@ -524,6 +524,54 @@
     cursor: pointer;
     font-family: inherit;
   }
+  /* 목표 카드 레이아웃 */
+  .stats-goal-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .stats-goal-wrapper .stats-card {
+    flex: 2;
+    margin-bottom: 0;
+  }
+  .goal-card {
+    flex: 1;
+    background: var(--purple-card);
+    border-radius: 12px;
+    padding: 14px 10px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .goal-item {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+  }
+  .goal-item .glabel { font-size: 9px; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+  .goal-item .gnum { font-size: 18px; font-weight: 700; line-height: 1; }
+  .goal-item .gunit { font-size: 9px; color: rgba(255,255,255,0.8); }
+  .goal-input {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+  }
+  .goal-input .glabel { font-size: 9px; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+  .goal-input input {
+    width: 100%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 5px;
+    padding: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--purple);
+    font-family: inherit;
+  }
 </style>
 </head>
 <body>
@@ -584,30 +632,51 @@
     <button class="btn btn-primary" onclick="saveRecord()">봉사 기록 저장</button>
   </div>
 
-  <!-- 월 통계 + 전송 -->
-  <div class="stats-card">
-    <div class="month-select-row">
-      <button onclick="changeStatsMonth(-1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">‹</button>
-      <select id="statsYear" onchange="renderStats()"></select>
-      <select id="statsMonth" onchange="renderStats()"></select>
-      <button onclick="changeStatsMonth(1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">›</button>
-    </div>
-    <div class="stats-row">
-      <div class="stats-item">
-        <label>시간</label>
-        <div class="num" id="statHours">0</div>
+  <!-- 월 통계 + 전송 + 목표 -->
+  <div class="stats-goal-wrapper">
+    <!-- 왼쪽: 전송 카드 -->
+    <div class="stats-card">
+      <div class="month-select-row">
+        <button onclick="changeStatsMonth(-1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">‹</button>
+        <select id="statsYear" onchange="renderStats()"></select>
+        <select id="statsMonth" onchange="renderStats()"></select>
+        <button onclick="changeStatsMonth(1)" style="background:rgba(255,255,255,0.2);border:none;color:white;font-size:18px;border-radius:8px;width:32px;height:32px;cursor:pointer;">›</button>
       </div>
-      <div class="stats-item">
-        <label>성서 연구</label>
-        <div class="num" id="statStudy">0</div>
+      <div class="stats-row">
+        <div class="stats-item">
+          <label>시간</label>
+          <div class="num" id="statHours">0</div>
+        </div>
+        <div class="stats-item">
+          <label>성서 연구</label>
+          <div class="num" id="statStudy">0</div>
+        </div>
+      </div>
+      <div class="lang-row">
+        <label><input type="radio" name="lang" value="id" checked> Indonesia</label>
+        <label><input type="radio" name="lang" value="en"> English</label>
+        <label><input type="radio" name="lang" value="ko"> 한국어</label>
+      </div>
+      <button class="btn-send" onclick="sendReport()">전송</button>
+    </div>
+
+    <!-- 오른쪽: 목표 카드 -->
+    <div class="goal-card">
+      <div class="goal-input">
+        <div class="glabel">목표 시간</div>
+        <input type="number" id="goalHours" placeholder="0" oninput="renderGoal()">
+      </div>
+      <div class="goal-item">
+        <div class="glabel">남은 시간</div>
+        <div class="gnum" id="goalRemain">-</div>
+        <div class="gunit">시간</div>
+      </div>
+      <div class="goal-item">
+        <div class="glabel">월말까지</div>
+        <div class="gnum" id="goalDays">-</div>
+        <div class="gunit">일</div>
       </div>
     </div>
-    <div class="lang-row">
-      <label><input type="radio" name="lang" value="id" checked> Indonesia</label>
-      <label><input type="radio" name="lang" value="en"> English</label>
-      <label><input type="radio" name="lang" value="ko"> 한국어</label>
-    </div>
-    <button class="btn-send" onclick="sendReport()">전송</button>
   </div>
 
   <!-- 달력 -->
@@ -883,6 +952,10 @@ async function initApp() {
   initSelects();
   setDefaultDate();
 
+  // 목표 시간 불러오기
+  const savedGoal = localStorage.getItem('jw_goal_' + currentUser);
+  if (savedGoal) document.getElementById('goalHours').value = savedGoal;
+
   // GitHub에서 데이터 불러오기
   await loadFromGitHub();
   saveLocal();
@@ -987,6 +1060,27 @@ function renderStats() {
   const display = totalRemMins > 0 ? `${totalHours}h ${totalRemMins}m` : `${totalHours}`;
   document.getElementById('statHours').textContent = display;
   document.getElementById('statStudy').textContent = totalStudy;
+  renderGoal();
+}
+
+function renderGoal() {
+  const y = parseInt(document.getElementById('statsYear').value);
+  const m = parseInt(document.getElementById('statsMonth').value);
+  const goal = parseInt(document.getElementById('goalHours').value) || 0;
+  const { totalHours } = getMonthTotals(y, m);
+
+  // 남은 시간
+  const remain = goal - totalHours;
+  document.getElementById('goalRemain').textContent = remain > 0 ? remain : 0;
+
+  // 월말까지 남은 일수
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysLeft = lastDay - now.getDate();
+  document.getElementById('goalDays').textContent = daysLeft;
+
+  // 목표 시간 저장
+  if (goal > 0) localStorage.setItem('jw_goal_' + currentUser, goal);
 }
 
 function getMonthTotals(y, m) {
