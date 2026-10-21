@@ -783,5 +783,10 @@
     "hours": 5,
     "minutes": 0,
     "study": 0
+  },
+  "2026-10-21": {
+    "hours": 0,
+    "minutes": 0,
+    "study": 1
   }
 }
